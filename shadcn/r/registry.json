@@ -91,6 +91,56 @@
           "type": "registry:lib"
         }
       ]
+    },
+    {
+      "name": "is-function",
+      "type": "registry:lib",
+      "title": "isFunction Utility",
+      "description": "Type-safe function type guard that extracts a typesafe function type from a union of function and non-function types.",
+      "files": [
+        {
+          "path": "registry/default/lib/is-function.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "apply-update",
+      "type": "registry:lib",
+      "title": "Apply Update Utility",
+      "description": "Utilities for applying state updates with support for both direct values and updater functions.",
+      "registryDependencies": ["https://gkurt.com/shadcn/r/is-function.json"],
+      "files": [
+        {
+          "path": "registry/default/lib/apply-update.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "deferred",
+      "type": "registry:lib",
+      "title": "Deferred Promise",
+      "description": "A Promise subclass that can be resolved or rejected externally, with status tracking, timeout, and polling support.",
+      "files": [
+        {
+          "path": "registry/default/lib/deferred.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "start-view-transition",
+      "type": "registry:lib",
+      "title": "startViewTransition Utility",
+      "description": "A wrapper around the View Transitions API with React flushSync support, typed transitions, and graceful fallback for unsupported browsers.",
+      "dependencies": ["react-dom"],
+      "files": [
+        {
+          "path": "registry/default/lib/start-view-transition.ts",
+          "type": "registry:lib"
+        }
+      ]
     }
   ]
 }

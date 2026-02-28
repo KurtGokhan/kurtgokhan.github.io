@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "start-view-transition",
+  "title": "startViewTransition Utility",
+  "description": "A wrapper around the View Transitions API with React flushSync support, typed transitions, and graceful fallback for unsupported browsers.",
+  "dependencies": [
+    "react-dom"
+  ],
+  "files": [
+    {
+      "path": "registry/default/lib/start-view-transition.ts",
+      "content": "import { flushSync } from 'react-dom';\n\nexport function startViewTransition({\n  update,\n  sync = true,\n  skipTransition = false,\n  types,\n  typesFallback = true,\n}: {\n  update: () => void | Promise<void>;\n  sync?: boolean;\n  skipTransition?: boolean;\n  types?: string[];\n  typesFallback?: boolean;\n}): ViewTransition {\n  if (sync) {\n    const oldUpdate = update;\n    update = () => flushSync(oldUpdate);\n  }\n\n  const unsupported = (error: string) => {\n    const updateCallbackDone = Promise.resolve(update()).then(() => undefined);\n\n    return {\n      ready: Promise.reject(Error(error)),\n      updateCallbackDone,\n      finished: updateCallbackDone,\n      skipTransition: () => {},\n      types: new Set(types),\n    } as ViewTransition;\n  };\n\n  if (!document.startViewTransition) return unsupported('View Transitions are not supported in this browser');\n  if (skipTransition) return unsupported('View Transitions are skipped');\n\n  if (!types) {\n    try {\n      return document.startViewTransition(update);\n    } catch (_e) {\n      return unsupported('View Transitions are not supported in this browser');\n    }\n  }\n\n  try {\n    return document.startViewTransition({ update, types } as any);\n  } catch (_e) {\n    if (typesFallback) return startViewTransition({ update, sync, skipTransition });\n    return unsupported('View Transitions with types are not supported in this browser');\n  }\n}\n",
+      "type": "registry:lib"
+    }
+  ],
+  "type": "registry:lib"
+}

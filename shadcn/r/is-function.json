@@ -1,0 +1,14 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "is-function",
+  "title": "isFunction Utility",
+  "description": "Type-safe function type guard that extracts a typesafe function type from a union of function and non-function types.",
+  "files": [
+    {
+      "path": "registry/default/lib/is-function.ts",
+      "content": "type FunctionType = (...args: any[]) => any;\n\ntype ExtractFunction<T> = T extends FunctionType ? (...args: Parameters<T>) => ReturnType<T> : never;\n\n/**\n * Extracts a typesafe function type from a union of function and non-function types.\n */\nexport function isFunction<T extends FunctionType>(value: T | unknown): value is ExtractFunction<T> {\n  return typeof value === 'function';\n}\n",
+      "type": "registry:lib"
+    }
+  ],
+  "type": "registry:lib"
+}

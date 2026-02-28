@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "apply-update",
+  "title": "Apply Update Utility",
+  "description": "Utilities for applying state updates with support for both direct values and updater functions.",
+  "registryDependencies": [
+    "https://gkurt.com/shadcn/r/is-function.json"
+  ],
+  "files": [
+    {
+      "path": "registry/default/lib/apply-update.ts",
+      "content": "import { isFunction } from '#registry/default/lib/is-function.ts';\n\nexport type Updater<TInput = unknown, TOutput = TInput> = TOutput | ((prev: TInput) => TOutput);\nexport type PartialUpdater<T extends Record<string, unknown>> = ((prev: T) => Partial<T>) | Partial<T>;\n\nexport function runUpdater<TInput, TOutput = TInput>(prevState: TInput, updater: Updater<TInput, TOutput>): TOutput {\n  if (isFunction(updater)) {\n    // updater is (prevState: TInput) => TOutput\n    return updater(prevState);\n  }\n  return updater;\n}\n",
+      "type": "registry:lib"
+    }
+  ],
+  "type": "registry:lib"
+}
