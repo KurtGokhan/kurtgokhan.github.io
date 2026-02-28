@@ -7,7 +7,7 @@
     "tailwind-variants"
   ],
   "registryDependencies": [
-    "tv-pick"
+    "https://gkurt.com/shadcn/r/tv-pick.json"
   ],
   "files": [
     {

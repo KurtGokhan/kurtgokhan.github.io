@@ -22,7 +22,7 @@
       "title": "Poly Component",
       "description": "Polymorphic React component with Tailwind Variants support for creating flexible, reusable components",
       "dependencies": ["tailwind-variants"],
-      "registryDependencies": ["tv-pick"],
+      "registryDependencies": ["https://gkurt.com/shadcn/r/tv-pick.json"],
       "files": [
         {
           "path": "registry/default/ui/poly.tsx",
@@ -36,7 +36,7 @@
       "title": "Poly Astro Component",
       "description": "Polymorphic Astro component with Tailwind Variants support for creating flexible, reusable Astro components",
       "dependencies": ["tailwind-variants"],
-      "registryDependencies": ["tv-pick"],
+      "registryDependencies": ["https://gkurt.com/shadcn/r/tv-pick.json"],
       "files": [
         {
           "path": "registry/default/ui/poly-astro.tsx",
