@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>KurtGokhan Shadcn Registry</title><meta name="description" content="KurtGokhan's custom shadcn registry for various components and utilities."><link rel="stylesheet" href="/shadcn/_astro/index.CCUPW0yX.css"></head> <body class="antialiased"> <div class="max-w-3xl mx-auto flex flex-col min-h-svh px-4 py-8 gap-8"> <header class="flex flex-col gap-1"> <h1 class="text-3xl font-bold tracking-tight">KurtGokhan Shadcn Registry</h1> <p class="text-muted-foreground">
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>KurtGokhan Shadcn Registry</title><meta name="description" content="KurtGokhan's custom shadcn registry for various components and utilities."><link rel="stylesheet" href="/shadcn/_astro/index.DzQZdJoS.css"></head> <body class="antialiased"> <div class="max-w-3xl mx-auto flex flex-col min-h-svh px-4 py-8 gap-8"> <header class="flex flex-col gap-1"> <h1 class="text-3xl font-bold tracking-tight">KurtGokhan Shadcn Registry</h1> <p class="text-muted-foreground">
 KurtGokhan's custom shadcn registry for various components and utilities.
 </p> </header> <main class="flex flex-col flex-1 gap-8"> <div class="flex flex-col gap-4 border rounded-lg p-6"> <div class="flex items-center justify-between"> <div> <h2 class="text-lg font-semibold">Poly Component</h2> <p class="text-sm text-muted-foreground">
 Polymorphic React component with Tailwind Variants support
@@ -49,6 +49,23 @@ import { PolyAstro } from &quot;components/ui/poly-astro&quot;
 &lt;PolyAstro as=&quot;button&quot; class=&quot;px-4 py-2 bg-green-500&quot;&gt;
   As Button
 &lt;/PolyAstro&gt;
-              </pre> </div> </div> </div> <div class="flex flex-col gap-4 border rounded-lg p-6 bg-gray-50"> <h2 class="text-lg font-semibold">Installation</h2> <div class="space-y-3"> <div> <p class="text-sm font-medium mb-2">Install Poly component:</p> <pre class="bg-white p-3 rounded text-xs">npx shadcn@latest add https://gkurt.com/shadcn/r/poly.json</pre> </div> <div> <p class="text-sm font-medium mb-2">
-Install PolyAstro component:
-</p> <pre class="bg-white p-3 rounded text-xs">npx shadcn@latest add https://gkurt.com/shadcn/r/poly-astro.json</pre> </div> <div> <p class="text-sm font-medium mb-2">Install tvPick utility:</p> <pre class="bg-white p-3 rounded text-xs">npx shadcn@latest add https://gkurt.com/shadcn/r/tv-pick.json</pre> </div> </div> </div> </main> </div> </body></html>
+              </pre> </div> </div> </div> <div class="flex flex-col gap-4 border rounded-lg p-6 bg-gray-50"> <h2 class="text-lg font-semibold">Installation</h2> <div class="space-y-5"> <div> <h3 class="text-sm font-medium mb-2">
+1. Add this registry to your components.json
+</h3> <pre class="bg-white p-3 rounded text-xs overflow-x-auto">// components.json
+{
+  &quot;registries&quot;: {
+    &quot;@gkurt&quot;: &quot;https://gkurt.com/shadcn/{name}.json&quot;
+  }
+}
+              </pre>
+or
+<pre class="bg-white p-3 rounded text-xs overflow-x-auto">bunx shadcn registry add @gkurt=https://gkurt.com/shadcn/{name}.json
+              </pre> </div> <div> <h3 class="text-sm font-medium mb-2">
+2. Install components using the namespace
+</h3> <pre class="bg-white p-3 rounded text-xs overflow-x-auto">npx shadcn@latest add @gkurt/poly
+npx shadcn@latest add @gkurt/poly-astro
+npx shadcn@latest add @gkurt/tv-pick
+              </pre> </div> <div> <h3 class="text-sm font-medium mb-2">
+Or install directly via URL
+</h3> <pre class="bg-white p-3 rounded text-xs overflow-x-auto">npx shadcn@latest add https://gkurt.com/shadcn/r/poly.json
+              </pre> </div> </div> </div> </main> </div> </body></html>
