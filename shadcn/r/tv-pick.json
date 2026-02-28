@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "tv-pick",
+  "title": "TV Pick Utility",
+  "description": "Utility for picking and processing Tailwind Variants props with type-safe data attributes",
+  "dependencies": [
+    "tailwind-variants"
+  ],
+  "files": [
+    {
+      "path": "registry/default/lib/tv-pick.ts",
+      "content": "import type { VariantProps } from 'tailwind-variants';\n\ntype KebabCase<S extends string> = S extends `${infer T}${infer U}`\n  ? T extends Lowercase<T>\n    ? `${T}${KebabCase<U>}`\n    : `-${Lowercase<T>}${KebabCase<U>}`\n  : S;\n\nfunction kebabCase<S extends string>(str: S): KebabCase<S> {\n  return str\n    .split('')\n    .map((char, index) => (char === char.toUpperCase() ? (index === 0 ? char.toLowerCase() : `-${char.toLowerCase()}`) : char))\n    .join('') as KebabCase<S>;\n}\n\ntype DataAttrs<T extends string> = { [K in `data-tv-${KebabCase<T>}`]?: string };\n\nexport function tvPick<\n  const TV extends ((...args: any) => any) & { variantKeys: string[]; defaultVariants?: Record<string, any> },\n  TProps extends VariantProps<TV>,\n  TWithDataAttrs extends boolean = false,\n  TAstro extends boolean = false,\n>(\n  tv: TV,\n  props: TProps,\n  withDataAttrs: TWithDataAttrs = false as TWithDataAttrs,\n  fillMissingDataAttrs = true,\n  forAstro: TAstro = false as TAstro,\n) {\n  type TKeys = TV['variantKeys'];\n  type TK = TKeys[number];\n\n  type TClass = TAstro extends true ? 'class' : 'className';\n  const classProp = (forAstro ? 'class' : 'className') as TClass;\n  type TRes = Omit<TProps, TK> & { [K in TClass]: string } & (TWithDataAttrs extends true ? DataAttrs<TK> : {});\n\n  const { className: baseClassName, class: baseClass, ...restProps } = props;\n\n  const res = restProps as unknown as TRes;\n  const tvProps = {} as any;\n\n  for (const key of tv.variantKeys) {\n    if (typeof key !== 'string') continue;\n\n    let val = props[key];\n    tvProps[key] = val;\n    delete (res as any)[key];\n\n    if (withDataAttrs) {\n      if (!val && fillMissingDataAttrs) val = tv.defaultVariants?.[key];\n      if (val) (res as any)[`data-tv-${kebabCase(key)}`] = val;\n    }\n  }\n\n  res[classProp] = tv({ ...(tvProps as TProps), className: baseClassName, class: baseClass });\n\n  return res;\n}\n",
+      "type": "registry:lib"
+    }
+  ],
+  "type": "registry:lib"
+}

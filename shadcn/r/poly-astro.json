@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "poly-astro",
+  "title": "Poly Astro Component",
+  "description": "Polymorphic Astro component with Tailwind Variants support for creating flexible, reusable Astro components",
+  "dependencies": [
+    "tailwind-variants"
+  ],
+  "registryDependencies": [
+    "tv-pick"
+  ],
+  "files": [
+    {
+      "path": "registry/default/ui/poly-astro.tsx",
+      "content": "/// <reference types=\"astro/client\" />\n\n/** @jsxImportSource astro */\n\nimport type { VariantProps } from 'tailwind-variants';\nimport { tvPick } from '#registry/default/lib/tv-pick.ts';\n\ntype AstroIntrinsicElementType = keyof astroHTML.JSX.DefinedIntrinsicElements;\nexport type AstroElementType = AstroIntrinsicElementType | ((props: any) => any);\n\ntype ComponentProps<T extends AstroElementType> = T extends AstroIntrinsicElementType\n  ? astroHTML.JSX.DefinedIntrinsicElements[T]\n  : T extends (props: infer P) => any\n    ? P\n    : {};\n\nexport type PolyProps<TC extends AstroElementType, TProps extends {} = {}, TAs = TC> = { as?: TAs } & Omit<TProps, 'as'> &\n  Omit<ComponentProps<TC>, keyof TProps | 'as'>;\n\nexport function createPolyAstro<\n  TProps extends {} = {},\n  TValidTypes extends AstroElementType = AstroElementType,\n  const TDefault extends TValidTypes = 'div' extends TValidTypes ? 'div' : never,\n>(defaultAs: TDefault, callback?: (Component: AstroElementType, props: Omit<PolyProps<TValidTypes, TProps>, 'as'>) => React.JSX.Element) {\n  const cmp = function PolyEl<const TC extends TValidTypes = TDefault>(props: PolyProps<TC, TProps>) {\n    const { as: Component = defaultAs as unknown as TC, ...rest } = props;\n\n    if (callback) return callback(Component, rest);\n    return <Component {...(rest as ComponentProps<TC> as any)} />;\n  };\n\n  type TRet = typeof cmp & {\n    '~validTypes': TValidTypes;\n    '~defaultAs': TDefault;\n  };\n\n  const ret = cmp as TRet;\n  ret['~defaultAs'] = defaultAs;\n  Object.defineProperty(ret, '~validTypes', {\n    get: () => {\n      throw new Error('Cannot access `~validTypes` at runtime');\n    },\n  });\n\n  return ret;\n}\n\nexport function tvPolyAstro<\n  const TV extends ((...args: any) => any) & { variantKeys: string[]; defaultVariants?: Record<string, any> },\n  TValidTypes extends AstroElementType = AstroElementType,\n  const TDefault extends TValidTypes = 'div' extends TValidTypes ? 'div' : never,\n>(tv: TV, defaultAs: TDefault) {\n  const polyCmp = createPolyAstro<VariantProps<TV>, TValidTypes, TDefault>(defaultAs, (Cmp, props) => (\n    <Cmp {...tvPick(tv, props as unknown as VariantProps<TV>, true)} />\n  ));\n\n  type TRet = typeof polyCmp & {\n    variants: typeof tv;\n    '~variantProps': VariantProps<TV>;\n  };\n\n  const ret = polyCmp as TRet;\n  ret.variants = tv;\n\n  Object.defineProperty(ret, '~variantProps', {\n    get: () => {\n      throw new Error('Cannot access `~variantProps` at runtime');\n    },\n  });\n\n  return ret;\n}\n\nexport const PolyAstro = createPolyAstro('div');\n",
+      "type": "registry:component"
+    }
+  ],
+  "type": "registry:component"
+}

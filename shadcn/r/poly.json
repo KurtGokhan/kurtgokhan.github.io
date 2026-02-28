@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "poly",
+  "title": "Poly Component",
+  "description": "Polymorphic React component with Tailwind Variants support for creating flexible, reusable components",
+  "dependencies": [
+    "tailwind-variants"
+  ],
+  "registryDependencies": [
+    "tv-pick"
+  ],
+  "files": [
+    {
+      "path": "registry/default/ui/poly.tsx",
+      "content": "import type { ComponentProps, ElementType } from 'react';\nimport type { VariantProps } from 'tailwind-variants';\nimport { tvPick } from '#registry/default/lib/tv-pick.ts';\n\nexport type PolyProps<TC extends ElementType, TProps extends {}> = { as?: TC } & Omit<TProps, 'as'> &\n  Omit<ComponentProps<TC>, keyof TProps | 'as'>;\n\nexport function createPoly<\n  TProps extends {} = {},\n  TValidTypes extends ElementType = ElementType,\n  const TDefault extends TValidTypes = 'div' extends TValidTypes ? 'div' : never,\n>(defaultAs: TDefault, callback?: (Component: ElementType, props: Omit<PolyProps<TValidTypes, TProps>, 'as'>) => React.JSX.Element) {\n  const cmp = function PolyEl<const TC extends TValidTypes = TDefault>(props: PolyProps<TC, TProps>) {\n    const { as: Component = defaultAs as unknown as TC, ...rest } = props;\n\n    if (callback) return callback(Component, rest);\n    return <Component {...(rest as ComponentProps<TC>)} />;\n  };\n\n  type TRet = typeof cmp & {\n    '~validTypes': TValidTypes;\n    '~defaultAs': TDefault;\n  };\n\n  const ret = cmp as TRet;\n  ret['~defaultAs'] = defaultAs;\n  Object.defineProperty(ret, '~validTypes', {\n    get: () => {\n      throw new Error('Cannot access `~validTypes` at runtime');\n    },\n  });\n\n  return ret;\n}\n\nexport function tvPoly<\n  const TV extends ((...args: any) => any) & { variantKeys: string[]; defaultVariants?: Record<string, any> },\n  TValidTypes extends ElementType = ElementType,\n  const TDefault extends TValidTypes = 'div' extends TValidTypes ? 'div' : never,\n>(tv: TV, defaultAs: TDefault) {\n  const polyCmp = createPoly<VariantProps<TV>, TValidTypes, TDefault>(defaultAs, (Cmp, props) => (\n    <Cmp {...tvPick(tv, props as unknown as VariantProps<TV>, true)} />\n  ));\n\n  type TRet = typeof polyCmp & {\n    variants: typeof tv;\n    '~variantProps': VariantProps<TV>;\n  };\n\n  const ret = polyCmp as TRet;\n  ret.variants = tv;\n\n  Object.defineProperty(ret, '~variantProps', {\n    get: () => {\n      throw new Error('Cannot access `~variantProps` at runtime');\n    },\n  });\n\n  return ret;\n}\n\nexport const Poly = createPoly('div');\n",
+      "type": "registry:component"
+    }
+  ],
+  "type": "registry:component"
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "acme",
+  "homepage": "https://acme.com",
+  "items": [
+    {
+      "name": "tv-pick",
+      "type": "registry:lib",
+      "title": "TV Pick Utility",
+      "description": "Utility for picking and processing Tailwind Variants props with type-safe data attributes",
+      "dependencies": ["tailwind-variants"],
+      "files": [
+        {
+          "path": "registry/default/lib/tv-pick.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "poly",
+      "type": "registry:component",
+      "title": "Poly Component",
+      "description": "Polymorphic React component with Tailwind Variants support for creating flexible, reusable components",
+      "dependencies": ["tailwind-variants"],
+      "registryDependencies": ["tv-pick"],
+      "files": [
+        {
+          "path": "registry/default/ui/poly.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "poly-astro",
+      "type": "registry:component",
+      "title": "Poly Astro Component",
+      "description": "Polymorphic Astro component with Tailwind Variants support for creating flexible, reusable Astro components",
+      "dependencies": ["tailwind-variants"],
+      "registryDependencies": ["tv-pick"],
+      "files": [
+        {
+          "path": "registry/default/ui/poly-astro.tsx",
+          "type": "registry:component"
+        }
+      ]
+    }
+  ]
+}
