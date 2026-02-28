@@ -1,0 +1,14 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-state-with-deps",
+  "title": "useStateWithDeps Hook",
+  "description": "A state hook that recomputes its initial value when dependencies change.",
+  "files": [
+    {
+      "path": "registry/default/hooks/use-state-with-deps.ts",
+      "content": "import { useEffect, useRef, useState } from 'react';\nimport type { DependencyList, Dispatch, SetStateAction } from 'react';\n\nfunction depsEqual(a: DependencyList, b: DependencyList) {\n  if (a === b) return true;\n  if (a.length !== b.length) return false;\n  for (let i = 0; i < a.length; i++) {\n    if (!Object.is(a[i], b[i])) return false;\n  }\n  return true;\n}\n\n/**\n * Like `useState`, but reinitializes the state when the provided dependency list changes.\n * The factory runs on mount and whenever `deps` changes by value (not just reference).\n * For best performance, wrap `factory` in `useCallback` so its identity stays stable.\n */\nexport function useStateWithDeps<T>(factory: () => T, deps: DependencyList): [T, Dispatch<SetStateAction<T>>] {\n  const depsRef = useRef<DependencyList>(deps);\n  const factoryRef = useRef(factory);\n  const [state, setState] = useState(() => {\n    depsRef.current = deps;\n    factoryRef.current = factory;\n    return factory();\n  });\n\n  useEffect(() => {\n    factoryRef.current = factory;\n  }, [factory]);\n\n  useEffect(() => {\n    if (depsEqual(depsRef.current, deps)) return;\n    depsRef.current = deps;\n    setState(factoryRef.current());\n  }, [deps]);\n\n  return [state, setState];\n}\n",
+      "type": "registry:lib"
+    }
+  ],
+  "type": "registry:lib"
+}

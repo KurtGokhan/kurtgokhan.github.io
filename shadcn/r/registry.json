@@ -43,6 +43,54 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "use-stable-callback",
+      "type": "registry:lib",
+      "title": "useStableCallback Hook",
+      "description": "A React hook that returns a referentially stable callback bound to the latest function instance.",
+      "files": [
+        {
+          "path": "registry/default/hooks/use-stable-callback.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "use-merged-ref",
+      "type": "registry:lib",
+      "title": "useMergedRef Hook",
+      "description": "Merge multiple React refs into a single stable callback ref.",
+      "files": [
+        {
+          "path": "registry/default/hooks/use-merged-ref.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "use-state-with-deps",
+      "type": "registry:lib",
+      "title": "useStateWithDeps Hook",
+      "description": "A state hook that recomputes its initial value when dependencies change.",
+      "files": [
+        {
+          "path": "registry/default/hooks/use-state-with-deps.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "use-constant",
+      "type": "registry:lib",
+      "title": "useConstant Hook",
+      "description": "Create a lazily initialized constant that persists for the lifetime of a component.",
+      "files": [
+        {
+          "path": "registry/default/hooks/use-constant.ts",
+          "type": "registry:lib"
+        }
+      ]
     }
   ]
 }

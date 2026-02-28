@@ -1,0 +1,14 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-constant",
+  "title": "useConstant Hook",
+  "description": "Create a lazily initialized constant that persists for the lifetime of a component.",
+  "files": [
+    {
+      "path": "registry/default/hooks/use-constant.ts",
+      "content": "import { useRef } from 'react';\n\n/**\n * Lazily creates a value once and reuses it for the component's lifetime.\n * Prefer this over `useMemo(() => value, [])` when the factory should only ever run once.\n */\nexport function useConstant<T>(factory: () => T): T {\n  const ref = useRef<{ v: T }>();\n\n  if (ref.current === undefined) {\n    ref.current = { v: factory() };\n  }\n\n  return ref.current.v;\n}\n",
+      "type": "registry:lib"
+    }
+  ],
+  "type": "registry:lib"
+}
