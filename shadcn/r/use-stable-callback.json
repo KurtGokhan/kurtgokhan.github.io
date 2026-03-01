@@ -6,7 +6,7 @@
   "files": [
     {
       "path": "registry/default/hooks/use-stable-callback.ts",
-      "content": "import { useCallback, useLayoutEffect, useRef } from 'react';\n\ntype AnyFunction = (...args: any[]) => any;\n\n/**\n * Returns a referentially stable callback that always invokes the latest function.\n * Useful when passing callbacks to memoized children without re-creating handlers.\n */\nexport function useStableCallback<T extends AnyFunction>(fn: T | undefined): (...args: Parameters<T>) => ReturnType<T> | undefined {\n  const fnRef = useRef(fn);\n  useLayoutEffect(() => {\n    fnRef.current = fn;\n  }, [fn]);\n\n  return useCallback(\n    (...args: Parameters<T>) => {\n      const latest = fnRef.current;\n      return latest?.(...args) as ReturnType<T> | undefined;\n    },\n    [],\n  );\n}\n",
+      "content": "import { useCallback, useLayoutEffect, useRef } from 'react';\n\ntype AnyFunction = (...args: any[]) => any;\n\n/**\n * Returns a referentially stable callback that always invokes the latest function.\n * Useful when passing callbacks to memoized children without re-creating handlers.\n */\nexport function useStableCallback<T extends AnyFunction>(\n  fn: T | undefined\n): (...args: Parameters<T>) => ReturnType<T> | undefined {\n  const fnRef = useRef(fn);\n  useLayoutEffect(() => {\n    fnRef.current = fn;\n  }, [fn]);\n\n  return useCallback((...args: Parameters<T>) => {\n    const latest = fnRef.current;\n    return latest?.(...args) as ReturnType<T> | undefined;\n  }, []);\n}\n",
       "type": "registry:lib"
     }
   ],

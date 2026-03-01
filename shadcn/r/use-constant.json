@@ -6,7 +6,7 @@
   "files": [
     {
       "path": "registry/default/hooks/use-constant.ts",
-      "content": "import { useRef } from 'react';\n\n/**\n * Lazily creates a value once and reuses it for the component's lifetime.\n * Prefer this over `useMemo(() => value, [])` when the factory should only ever run once.\n */\nexport function useConstant<T>(factory: () => T): T {\n  const ref = useRef<{ v: T }>();\n\n  if (ref.current === undefined) {\n    ref.current = { v: factory() };\n  }\n\n  return ref.current.v;\n}\n",
+      "content": "import { useRef } from 'react';\n\n/**\n * Returns a constant value that does not change during the lifetime of the component.\n * The value can be a function, in which case it will be called once on initial render.\n */\nexport function useConstant<const T>(value: T | (() => T)): T {\n  const res = useRef<[T]>(undefined);\n  if (!res.current) res.current = [typeof value === 'function' ? (value as () => T)() : value] as const;\n  return res.current[0];\n}\n",
       "type": "registry:lib"
     }
   ],
