@@ -1,0 +1,37 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "remove-default-colors",
+  "title": "Remove Default Tailwind Colors",
+  "description": "Removes all default Tailwind CSS color palettes from @theme to declutter autocomplete. Selectively comment-out colors to keep specific palettes.",
+  "cssVars": {
+    "theme": {
+      "color-red-*": "initial",
+      "color-orange-*": "initial",
+      "color-amber-*": "initial",
+      "color-yellow-*": "initial",
+      "color-lime-*": "initial",
+      "color-green-*": "initial",
+      "color-emerald-*": "initial",
+      "color-teal-*": "initial",
+      "color-cyan-*": "initial",
+      "color-sky-*": "initial",
+      "color-blue-*": "initial",
+      "color-indigo-*": "initial",
+      "color-violet-*": "initial",
+      "color-purple-*": "initial",
+      "color-fuchsia-*": "initial",
+      "color-pink-*": "initial",
+      "color-rose-*": "initial",
+      "color-slate-*": "initial",
+      "color-gray-*": "initial",
+      "color-zinc-*": "initial",
+      "color-neutral-*": "initial",
+      "color-stone-*": "initial",
+      "color-mauve-*": "initial",
+      "color-olive-*": "initial",
+      "color-mist-*": "initial",
+      "color-taupe-*": "initial"
+    }
+  },
+  "type": "registry:theme"
+}
