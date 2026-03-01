@@ -9,7 +9,7 @@
   "files": [
     {
       "path": "registry/default/hooks/use-deps-changed.ts",
-      "content": "import { type DependencyList, useRef } from 'react';\n\ntype EqualityFn = (a: unknown, b: unknown) => boolean;\n\nfunction depsEqual(a: DependencyList, b: DependencyList, equalityFn: EqualityFn = Object.is) {\n  if (a === b) return true;\n  if (a.length !== b.length) return false;\n  for (let i = 0; i < a.length; i++) {\n    if (!equalityFn(a[i], b[i])) return false;\n  }\n  return true;\n}\n\nexport function useDepsChanged(deps: DependencyList, equalityFn: EqualityFn = Object.is): boolean {\n  const depsRef = useRef<DependencyList>(deps);\n  const changed = !depsEqual(depsRef.current, deps, equalityFn);\n  depsRef.current = deps;\n  return changed;\n}\n",
+      "content": "import { type DependencyList, useRef } from 'react';\n\nexport type DepsChangedEqualityFn<T> = (a: T, b: T) => boolean;\n\nexport function areDepsEqual<T extends DependencyList>(\n  a: T,\n  b: T,\n  equalityFn: DepsChangedEqualityFn<T[number]> = Object.is\n) {\n  if (a === b) return true;\n  if (a.length !== b.length) return false;\n  for (let i = 0; i < a.length; i++) {\n    if (!equalityFn(a[i], b[i])) return false;\n  }\n  return true;\n}\n\nexport function useDepsChanged<T extends DependencyList>(\n  deps: T,\n  equalityFn: DepsChangedEqualityFn<T[number]> = Object.is\n): boolean {\n  const depsRef = useRef(deps);\n  const changed = !areDepsEqual(depsRef.current, deps, equalityFn);\n  depsRef.current = deps;\n  return changed;\n}\n",
       "type": "registry:hook"
     }
   ],

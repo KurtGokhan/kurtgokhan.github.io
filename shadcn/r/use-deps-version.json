@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-deps-version",
+  "title": "useDepsVersion Hook",
+  "description": "A hook that returns a version number that increments when dependencies change.",
+  "dependencies": [
+    "react"
+  ],
+  "registryDependencies": [
+    "https://gkurt.com/shadcn/r/use-deps-changed.json"
+  ],
+  "files": [
+    {
+      "path": "registry/default/hooks/use-deps-version.ts",
+      "content": "import { type DependencyList, useState } from 'react';\nimport { type DepsChangedEqualityFn, useDepsChanged } from '#registry/default/hooks/use-deps-changed.ts';\n\nconst increment = (v: number) => v + 1;\n\nexport function useDepsVersion<T extends DependencyList>(\n  deps: T,\n  equalityFn: DepsChangedEqualityFn<T[number]> = Object.is\n): number {\n  const [version, setVersion] = useState(0);\n  const changed = useDepsChanged(deps, equalityFn);\n  if (changed) setVersion(increment);\n  return version;\n}\n",
+      "type": "registry:hook"
+    }
+  ],
+  "type": "registry:hook"
+}

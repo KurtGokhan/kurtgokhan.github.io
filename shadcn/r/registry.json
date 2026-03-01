@@ -112,6 +112,20 @@
       ]
     },
     {
+      "name": "use-deps-version",
+      "type": "registry:hook",
+      "title": "useDepsVersion Hook",
+      "description": "A hook that returns a version number that increments when dependencies change.",
+      "dependencies": ["react"],
+      "registryDependencies": ["https://gkurt.com/shadcn/r/use-deps-changed.json"],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-deps-version.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
       "name": "use-constant",
       "type": "registry:hook",
       "title": "useConstant Hook",
