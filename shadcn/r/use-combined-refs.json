@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-combined-refs",
+  "title": "useCombinedRefs Hook",
+  "description": "Combine multiple React refs into a single stable callback ref.",
+  "dependencies": [
+    "react"
+  ],
+  "files": [
+    {
+      "path": "registry/default/hooks/use-combined-refs.ts",
+      "content": "import { type Ref, type RefCallback, type RefObject, useCallback, useRef } from 'react';\n\ntype OptionalRef<T> = Ref<T> | undefined;\n\ntype Cleanup = (() => void) | undefined | void;\n\ntype MultiRef<T> = RefCallback<T> &\n  RefObject<T | null> & {\n    ref: RefObject<T | null>;\n  };\n\nexport function setRef<T>(ref: OptionalRef<T>, value: T): Cleanup {\n  if (typeof ref === 'function') {\n    const cleanup = ref(value);\n\n    if (typeof cleanup === 'function') {\n      return cleanup;\n    }\n    return () => ref(null);\n  } else if (ref) {\n    ref.current = value;\n    return () => (ref.current = null);\n  }\n}\n\nexport function useCombinedRefs<T>(...refs: OptionalRef<T>[]) {\n  const ref = useRef<T | null>(null);\n\n  const refFn = useCallback<RefCallback<T>>(value => {\n    ref.current = value;\n    const cleanups: Cleanup[] = [];\n\n    for (const ref of refs) {\n      const cleanup = setRef(ref, value);\n      if (typeof cleanup === 'function') cleanups.push(cleanup);\n    }\n\n    if (!cleanups.length) return;\n\n    return () => {\n      ref.current = null;\n      for (const cleanup of cleanups) {\n        cleanup?.();\n      }\n    };\n    // biome-ignore lint/correctness/useExhaustiveDependencies: The hook already lists all dependencies\n  }, refs) as MultiRef<T>;\n\n  if (!Object.getOwnPropertyDescriptor(refFn, 'current'))\n    Object.defineProperty(refFn, 'current', {\n      get() {\n        return ref.current;\n      },\n    });\n\n  if (!Object.getOwnPropertyDescriptor(refFn, 'ref'))\n    Object.defineProperty(refFn, 'ref', {\n      get() {\n        return ref;\n      },\n    });\n\n  return refFn;\n}\n",
+      "type": "registry:hook"
+    }
+  ],
+  "type": "registry:hook"
+}

@@ -45,50 +45,82 @@
       ]
     },
     {
-      "name": "use-stable-callback",
-      "type": "registry:lib",
-      "title": "useStableCallback Hook",
-      "description": "A React hook that returns a referentially stable callback bound to the latest function instance.",
+      "name": "use-stable-value",
+      "type": "registry:hook",
+      "title": "useStableValue Hook",
+      "description": "A React hook that returns a referentially stable value bound to the latest value instance.",
+      "dependencies": ["react"],
       "files": [
         {
-          "path": "registry/default/hooks/use-stable-callback.ts",
-          "type": "registry:lib"
+          "path": "registry/default/hooks/use-stable-value.ts",
+          "type": "registry:hook"
         }
       ]
     },
     {
-      "name": "use-merged-ref",
-      "type": "registry:lib",
-      "title": "useMergedRef Hook",
-      "description": "Merge multiple React refs into a single stable callback ref.",
+      "name": "use-stable-callback",
+      "type": "registry:hook",
+      "title": "useStableCallback Hook",
+      "description": "A React hook that returns a referentially stable callback bound to the latest function instance.",
+      "dependencies": ["react"],
+      "registryDependencies": ["https://gkurt.com/shadcn/r/use-stable-value.json"],
       "files": [
         {
-          "path": "registry/default/hooks/use-merged-ref.ts",
-          "type": "registry:lib"
+          "path": "registry/default/hooks/use-stable-callback.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "use-combined-refs",
+      "type": "registry:hook",
+      "title": "useCombinedRefs Hook",
+      "description": "Combine multiple React refs into a single stable callback ref.",
+      "dependencies": ["react"],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-combined-refs.ts",
+          "type": "registry:hook"
         }
       ]
     },
     {
       "name": "use-state-with-deps",
-      "type": "registry:lib",
+      "type": "registry:hook",
       "title": "useStateWithDeps Hook",
       "description": "A state hook that recomputes its initial value when dependencies change.",
+      "dependencies": ["react"],
+      "registryDependencies": ["https://gkurt.com/shadcn/r/use-deps-changed.json"],
       "files": [
         {
           "path": "registry/default/hooks/use-state-with-deps.ts",
-          "type": "registry:lib"
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "use-deps-changed",
+      "type": "registry:hook",
+      "title": "useDepsChanged Hook",
+      "description": "A hook that checks if dependencies have changed.",
+      "dependencies": ["react"],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-deps-changed.ts",
+          "type": "registry:hook"
         }
       ]
     },
     {
       "name": "use-constant",
-      "type": "registry:lib",
+      "type": "registry:hook",
       "title": "useConstant Hook",
       "description": "Create a lazily initialized constant that persists for the lifetime of a component.",
+      "dependencies": ["react"],
       "files": [
         {
           "path": "registry/default/hooks/use-constant.ts",
-          "type": "registry:lib"
+          "type": "registry:hook"
         }
       ]
     },

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-stable-value",
+  "title": "useStableValue Hook",
+  "description": "A React hook that returns a referentially stable value bound to the latest value instance.",
+  "dependencies": [
+    "react"
+  ],
+  "files": [
+    {
+      "path": "registry/default/hooks/use-stable-value.ts",
+      "content": "import { useRef } from 'react';\n\n/**\n * Returns a stable ref that always has the latest value of the passed value.\n * The value will be updated immediately in the render phase.\n */\nexport function useStableValue<T>(value: T) {\n  const ref = useRef(value);\n  ref.current = value;\n  return ref;\n}\n",
+      "type": "registry:hook"
+    }
+  ],
+  "type": "registry:hook"
+}

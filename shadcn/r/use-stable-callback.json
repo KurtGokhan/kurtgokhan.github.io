@@ -3,12 +3,18 @@
   "name": "use-stable-callback",
   "title": "useStableCallback Hook",
   "description": "A React hook that returns a referentially stable callback bound to the latest function instance.",
+  "dependencies": [
+    "react"
+  ],
+  "registryDependencies": [
+    "https://gkurt.com/shadcn/r/use-stable-value.json"
+  ],
   "files": [
     {
       "path": "registry/default/hooks/use-stable-callback.ts",
-      "content": "import { useCallback, useLayoutEffect, useRef } from 'react';\n\ntype AnyFunction = (...args: any[]) => any;\n\n/**\n * Returns a referentially stable callback that always invokes the latest function.\n * Useful when passing callbacks to memoized children without re-creating handlers.\n */\nexport function useStableCallback<T extends AnyFunction>(\n  fn: T | undefined\n): (...args: Parameters<T>) => ReturnType<T> | undefined {\n  const fnRef = useRef(fn);\n  useLayoutEffect(() => {\n    fnRef.current = fn;\n  }, [fn]);\n\n  return useCallback((...args: Parameters<T>) => {\n    const latest = fnRef.current;\n    return latest?.(...args) as ReturnType<T> | undefined;\n  }, []);\n}\n",
-      "type": "registry:lib"
+      "content": "import { useCallback } from 'react';\nimport { useStableValue } from '#registry/default/hooks/use-stable-value.ts';\n\ntype FunctionType = (...args: any[]) => any;\n\n/**\n * Returns a stable ref to a function\n */\nexport function useStableCallback<T extends FunctionType | null | undefined>(value: T): NonNullable<T> {\n  const handlerRef = useStableValue(value);\n  // biome-ignore lint/correctness/useExhaustiveDependencies: The dependencies are intentionally left empty to maintain a stable callback reference.\n  const res = useCallback(function (this: any, ...args: unknown[]) {\n    return handlerRef.current?.apply(this, args);\n  }, []);\n  return res as NonNullable<T>;\n}\n",
+      "type": "registry:hook"
     }
   ],
-  "type": "registry:lib"
+  "type": "registry:hook"
 }

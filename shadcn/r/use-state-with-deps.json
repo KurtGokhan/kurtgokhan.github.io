@@ -3,12 +3,18 @@
   "name": "use-state-with-deps",
   "title": "useStateWithDeps Hook",
   "description": "A state hook that recomputes its initial value when dependencies change.",
+  "dependencies": [
+    "react"
+  ],
+  "registryDependencies": [
+    "https://gkurt.com/shadcn/r/use-deps-changed.json"
+  ],
   "files": [
     {
       "path": "registry/default/hooks/use-state-with-deps.ts",
-      "content": "import type { DependencyList, Dispatch, SetStateAction } from 'react';\nimport { useEffect, useRef, useState } from 'react';\n\nfunction depsEqual(a: DependencyList, b: DependencyList) {\n  if (a === b) return true;\n  if (a.length !== b.length) return false;\n  for (let i = 0; i < a.length; i++) {\n    if (!Object.is(a[i], b[i])) return false;\n  }\n  return true;\n}\n\n/**\n * Like `useState`, but reinitializes the state when the provided dependency list changes.\n * The factory runs on mount and whenever `deps` changes by value (not just reference).\n * For best performance, wrap `factory` in `useCallback` so its identity stays stable.\n */\nexport function useStateWithDeps<T>(factory: () => T, deps: DependencyList): [T, Dispatch<SetStateAction<T>>] {\n  const depsRef = useRef<DependencyList>(deps);\n  const factoryRef = useRef(factory);\n  const [state, setState] = useState(() => {\n    depsRef.current = deps;\n    factoryRef.current = factory;\n    return factory();\n  });\n\n  useEffect(() => {\n    factoryRef.current = factory;\n  }, [factory]);\n\n  useEffect(() => {\n    if (depsEqual(depsRef.current, deps)) return;\n    depsRef.current = deps;\n    setState(factoryRef.current());\n  }, [deps]);\n\n  return [state, setState];\n}\n",
-      "type": "registry:lib"
+      "content": "import { type DependencyList, type Dispatch, type SetStateAction, useState } from 'react';\nimport { useDepsChanged } from '#registry/default/hooks/use-deps-changed.ts';\nimport { isFunction } from '#registry/default/lib/is-function.ts';\n\n/**\n * This hook works like `useState`, but it takes an additional dependency list parameter to reset the state when the dependencies change.\n * It is useful when we want to reset the state when some external values change.\n */\nexport function useStateWithDeps<S>(\n  initialState: S | (() => S),\n  deps?: DependencyList\n): [S, Dispatch<SetStateAction<S>>] {\n  const [state, setState] = useState(initialState);\n\n  let initialValue: S;\n  if (!deps) {\n    initialValue = isFunction(initialState) ? (initialState as () => S)() : initialState;\n    deps = [initialValue];\n  }\n  const depsChanged = useDepsChanged(deps);\n\n  if (depsChanged) {\n    initialValue ??= isFunction(initialState) ? (initialState as () => S)() : initialState;\n    setState(initialValue);\n  }\n\n  return [state, setState] as const;\n}\n",
+      "type": "registry:hook"
     }
   ],
-  "type": "registry:lib"
+  "type": "registry:hook"
 }
