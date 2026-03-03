@@ -189,6 +189,18 @@
       ]
     },
     {
+      "name": "spring",
+      "type": "registry:lib",
+      "title": "Spring Utility",
+      "description": "A basic spring physics simulation utility.",
+      "files": [
+        {
+          "path": "registry/default/lib/spring.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "remove-default-colors",
       "type": "registry:theme",
       "title": "Remove Default Tailwind Colors",
