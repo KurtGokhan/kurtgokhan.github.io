@@ -1,1102 +1,1234 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8" />
-<title>Portal — HTML in Canvas</title>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: #141416;
-    overflow: hidden;
-    height: 100%;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  }
-  body { user-select: none; }
-  body.hide-system-cursor { cursor: none; }
+  <meta charset="utf-8" />
+  <title>Portal — HTML in Canvas</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: #26262c;
+    }
 
-  #canvas {
-    display: block;
-    width: 100vw;
-    height: 100vh;
-    background: #141416;
-  }
+    body {
+      user-select: none;
+      background-color: #f0eee6;
+      /* Tiled 44px square with a small + at its top-left corner, which is
+       also the top-right, bottom-left, and bottom-right corner of its
+       neighbours — so when tiled, the + marks appear at the corners of
+       every square in the grid. */
+      background-image:
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><g stroke='%23b5b2a5' stroke-width='1' stroke-linecap='round'><line x1='22' y1='17' x2='22' y2='27'/><line x1='17' y1='22' x2='27' y2='22'/></g></svg>");
+      background-size: 44px 44px;
+      background-position: 0 0;
+    }
 
-  /* Two narrow text columns pulled in from the edges so they flank the
-     central platforms. Turrets occupy the outer margins. */
-  #content {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    width: min(1080px, calc(100vw - 140px));
-    gap: 24px;
-    padding: 0;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    color: #e8e8e8;
-    line-height: 1.5;
-    font-size: 14.5px;
-  }
-  #content .col {
-    flex: 0 0 220px;
-    padding: 20px 22px;
-    background: linear-gradient(180deg, #2a2a2d 0%, #1d1d20 100%);
-    border: 1px solid #333;
-    border-radius: 6px;
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
-  }
-  #content h1 {
-    margin: 0 0 4px;
-    font-size: 26px;
-    letter-spacing: -0.4px;
-    background: linear-gradient(90deg, #3aa8ff 0%, #ff9a3c 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  #content .sub {
-    color: #8d8d92;
-    margin: 0 0 12px;
-    font-size: 10.5px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-  }
-  #content h2 {
-    color: #ffa64d;
-    margin: 14px 0 4px;
-    font-size: 16px;
-    border-bottom: 1px solid #3a2a1a;
-    padding-bottom: 3px;
-  }
-  #content p { margin: 6px 0; }
-  #content .quote {
-    border-left: 3px solid #3aa8ff;
-    padding: 6px 10px;
-    margin: 10px 0;
-    font-style: italic;
-    background: rgba(58, 168, 255, 0.08);
-    color: #cde3f2;
-    border-radius: 0 4px 4px 0;
-    font-size: 13px;
-  }
-  #content code {
-    background: #0f0f11;
-    padding: 1px 5px;
-    border-radius: 3px;
-    color: #6fd0b4;
-    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
-    font-size: 12.5px;
-  }
-  #content .cake {
-    display: inline-block;
-    padding: 1px 6px;
-    background: #2a1626;
-    border: 1px solid #5a2a42;
-    border-radius: 3px;
-    color: #f8c0d6;
-    font-size: 12px;
-  }
-  #content .blue   { color: #3aa8ff; font-weight: 600; }
-  #content .orange { color: #ff9a3c; font-weight: 600; }
+    body.hide-system-cursor {
+      cursor: none;
+    }
 
-  .hud {
-    position: fixed;
-    top: 14px;
-    left: 14px;
-    z-index: 10;
-    color: #c8c8cc;
-    pointer-events: none;
-    font-size: 12.5px;
-    background: rgba(10, 10, 12, 0.55);
-    padding: 10px 14px;
-    border-radius: 6px;
-    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
-    backdrop-filter: blur(6px);
-    line-height: 1.7;
-    border: 1px solid #2a2a2e;
-  }
-  .hud .title { color: #fff; font-weight: 600; letter-spacing: 0.5px; }
-  .hud .b { color: #3aa8ff; }
-  .hud .o { color: #ff9a3c; }
-  .hud kbd {
-    background: #222;
-    border: 1px solid #444;
-    border-bottom-width: 2px;
-    border-radius: 3px;
-    padding: 0 5px;
-    font-size: 11px;
-    color: #eee;
-  }
+    /* Canvas is transparent — the body background pattern shows through
+     wherever the canvas isn't opaque. */
+    #canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      background: transparent;
+    }
 
-  .flag-warn, .lock-hint {
-    position: fixed;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    font-size: 12px;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-family: ui-monospace, monospace;
-    pointer-events: none;
-  }
-  .flag-warn {
-    bottom: 12px;
-    color: #ffb;
-    background: rgba(40, 30, 0, 0.75);
-    border: 1px solid #664;
-  }
-  .lock-hint {
-    bottom: 44px;
-    color: #dbe7ff;
-    background: rgba(12, 26, 48, 0.75);
-    border: 1px solid #335;
-    transition: opacity 0.25s;
-  }
-  .lock-hint.hidden { opacity: 0; }
-  .lock-hint.error  { color: #ffd0d0; background: rgba(48, 16, 16, 0.8); border-color: #633; }
-</style>
+    /* Two narrow reading columns flanking the central walls. */
+    #content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: min(1080px, calc(100vw - 140px));
+      gap: 24px;
+      padding: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      color: #26262c;
+      line-height: 1.55;
+      font-size: 14.5px;
+    }
+
+    #content .col {
+      flex: 0 0 220px;
+      padding: 20px 22px;
+      background: linear-gradient(180deg, #ffffff 0%, #f5f2e8 100%);
+      border: 1px solid #cac7bc;
+      border-radius: 6px;
+      box-shadow: 0 6px 22px rgba(70, 68, 60, 0.08);
+    }
+
+    #content h1 {
+      margin: 0 0 4px;
+      font-size: 26px;
+      letter-spacing: -0.4px;
+      background: linear-gradient(90deg, #1e9fe0 0%, #ed8a20 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    #content .sub {
+      color: #7d7b72;
+      margin: 0 0 12px;
+      font-size: 10.5px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    #content h2 {
+      color: #c85e14;
+      margin: 14px 0 4px;
+      font-size: 16px;
+      border-bottom: 1px solid #e7d4c1;
+      padding-bottom: 3px;
+    }
+
+    #content p {
+      margin: 6px 0;
+      color: #3a3a40;
+    }
+
+    #content .quote {
+      border-left: 3px solid #1e9fe0;
+      padding: 6px 10px;
+      margin: 10px 0;
+      font-style: italic;
+      background: rgba(30, 159, 224, 0.08);
+      color: #14578a;
+      border-radius: 0 4px 4px 0;
+      font-size: 13px;
+    }
+
+    #content code {
+      background: #f5f2e7;
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: #15614c;
+      border: 1px solid #d8d4c6;
+      font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+      font-size: 12.5px;
+    }
+
+    #content .cake {
+      display: inline-block;
+      padding: 1px 6px;
+      background: #fbe6f0;
+      border: 1px solid #e9b8ce;
+      border-radius: 3px;
+      color: #a23062;
+      font-size: 12px;
+    }
+
+    #content .blue {
+      color: #1e9fe0;
+      font-weight: 600;
+    }
+
+    #content .orange {
+      color: #ed8a20;
+      font-weight: 600;
+    }
+
+    .hud {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 10;
+      color: #26262c;
+      pointer-events: none;
+      font-size: 12.5px;
+      background: rgba(255, 255, 255, 0.88);
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+      backdrop-filter: blur(6px);
+      line-height: 1.7;
+      border: 1px solid #cac7bc;
+      box-shadow: 0 4px 14px rgba(70, 68, 60, 0.06);
+    }
+
+    .hud .title {
+      color: #1a1a20;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .hud .b {
+      color: #1e9fe0;
+    }
+
+    .hud .o {
+      color: #ed8a20;
+    }
+
+    .hud kbd {
+      background: #f5f2e7;
+      border: 1px solid #c0bdb0;
+      border-bottom-width: 2px;
+      border-radius: 3px;
+      padding: 0 5px;
+      font-size: 11px;
+      color: #26262c;
+    }
+
+    .flag-warn,
+    .lock-hint {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-family: ui-monospace, monospace;
+      pointer-events: none;
+    }
+
+    .flag-warn {
+      bottom: 12px;
+      color: #8a6a10;
+      background: rgba(255, 246, 215, 0.95);
+      border: 1px solid #e6d18a;
+    }
+
+    .lock-hint {
+      bottom: 44px;
+      color: #0f4e7a;
+      background: rgba(222, 240, 252, 0.95);
+      border: 1px solid #9fc8e4;
+      transition: opacity 0.25s;
+    }
+
+    .lock-hint.hidden {
+      opacity: 0;
+    }
+
+    .lock-hint.error {
+      color: #8a1e1e;
+      background: rgba(252, 224, 224, 0.95);
+      border-color: #d89898;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="hud">
-  <div class="title">Portal — HTML in Canvas</div>
-  <span class="b">left click</span> blue portal &nbsp; <span class="o">right click</span> orange portal &nbsp; (same-color click clears)<br>
-  <kbd>space</kbd> launch cube &nbsp; <kbd>esc</kbd> release pointer &nbsp; <kbd>c</kbd> clear portals &nbsp; <kbd>r</kbd> reset cubes
-</div>
-
-<div class="lock-hint" id="lockHint">click the canvas to lock the pointer for Portal-style cursor</div>
-
-<div class="flag-warn">
-  requires Chrome Canary with <code>chrome://flags/#canvas-draw-element</code> enabled
-</div>
-
-<canvas id="canvas" layoutsubtree>
-  <div id="content">
-    <div class="col">
-      <h1>Now You're Thinking With Portals</h1>
-      <div class="sub">Aperture Science Enrichment</div>
-      <h2>Test Chamber 01</h2>
-      <p>Welcome, specimen. Your brief detention in the relaxation vault has been pleasant. The test proper begins now.</p>
-      <div class="quote">The Companion Cube cannot speak. In the event it does speak, the Enrichment Center urges you to disregard its advice.</div>
-      <p>Turrets on either side volley cubes across the chamber. They ricochet off the walls and paragraphs before eventually falling through the floor.</p>
-    </div>
-
-    <div class="col">
-      <h2>How It Works</h2>
-      <p>This column is a single <code>&lt;div&gt;</code> rendered into a <code>&lt;canvas layoutsubtree&gt;</code> via <code>drawElementImage()</code>. Everything visible through a portal — background, walls, text, turrets, cubes — is the world sampled from the partner portal's neighborhood.</p>
-      <h2>Addendum</h2>
-      <p>This next test is impossible. Make no attempt to solve it. <span class="cake">The cake is a lie.</span></p>
-    </div>
+  <div class="hud">
+    <div class="title">Portal — HTML in Canvas</div>
+    <span class="b">left click</span> blue portal &nbsp; <span class="o">right click</span> orange portal &nbsp;
+    (same-color click clears)<br>
+    <kbd>space</kbd> launch cube &nbsp; <kbd>esc</kbd> release pointer &nbsp; <kbd>c</kbd> clear portals &nbsp;
+    <kbd>r</kbd> reset cubes
   </div>
-</canvas>
 
-<script>
-(() => {
-  const canvas    = document.getElementById('canvas');
-  const ctx       = canvas.getContext('2d');
-  const content   = document.getElementById('content');
-  const lockHint  = document.getElementById('lockHint');
+  <div class="lock-hint" id="lockHint">click the canvas to lock the pointer for Portal-style cursor</div>
 
-  // Offscreen compositor — the entire world (background pattern → walls →
-  // text → turrets → cubes) is rendered here once per frame. Direct view is
-  // a blit of this buffer; portal mirrors sample distorted strips from it.
-  const off  = document.createElement('canvas');
-  const octx = off.getContext('2d');
+  <div class="flag-warn">
+    requires Chrome Canary with <code>chrome://flags/#canvas-draw-element</code> enabled
+  </div>
 
-  // ------------------------------------------------------------------
-  // World state
-  // ------------------------------------------------------------------
-  const PORTAL_RX    = 58;
-  const PORTAL_RY    = 90;
-  const MAX_CUBES    = 16;
-  const MOUSE_GAIN   = 1.7;
-  const TURRET_INSET = 50;
+  <canvas id="canvas" layoutsubtree>
+    <div id="content">
+      <div class="col">
+        <h1>Now You're Thinking With Portals</h1>
+        <div class="sub">Aperture Science Enrichment</div>
+        <h2>Test Chamber 01</h2>
+        <p>Welcome, specimen. Your brief detention in the relaxation vault has been pleasant. The test proper begins
+          now.</p>
+        <div class="quote">The Companion Cube cannot speak. In the event it does speak, the Enrichment Center urges you
+          to disregard its advice.</div>
+        <p>Turrets on either side volley cubes across the chamber. They ricochet off walls and ledges before eventually
+          falling through the floor.</p>
+      </div>
 
-  const portals   = { blue: null, orange: null };
-  const cubes     = [];
-  const walls     = [];
-  const turrets   = [];
-  const particles = [];
+      <div class="col">
+        <h2>How It Works</h2>
+        <p>This column is a single <code>&lt;div&gt;</code> rendered into a <code>&lt;canvas layoutsubtree&gt;</code>
+          via <code>drawElementImage()</code>. Surfaces marked with gray paint cannot accept a portal.</p>
+        <h2>Addendum</h2>
+        <p>This next test is impossible. Make no attempt to solve it. <span class="cake">The cake is a lie.</span></p>
+      </div>
+    </div>
+  </canvas>
 
-  const cursor = {
-    x: 0,
-    y: 0,
-    currentPortal: null,
-    initialized: false
-  };
+  <script>
+    (() => {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const content = document.getElementById('content');
+      const lockHint = document.getElementById('lockHint');
 
-  let usingVirtualCursor = false;
-  let pointerLockFailed  = false;
+      // Offscreen compositor — foreground pass copied from the main canvas, with
+      // background pattern filled in underneath for portal-mirror sampling.
+      const off = document.createElement('canvas');
+      const octx = off.getContext('2d');
 
-  let contentX = 80;
-  let contentY = 90;
-  let textObstacles = [];
-  let clock = 0;
+      // ------------------------------------------------------------------
+      // Config
+      // ------------------------------------------------------------------
+      // Disabled for now; flip to true to re-enable cursor-through-portal
+      // teleportation and the virtual-cursor wall clamping that goes with it.
+      const ENABLE_CURSOR_PORTAL = false;
 
-  // ------------------------------------------------------------------
-  // Background tile
-  // ------------------------------------------------------------------
-  const bgTile = (() => {
-    const t = document.createElement('canvas');
-    t.width = t.height = 48;
-    const tc = t.getContext('2d');
-    const g = tc.createLinearGradient(0, 0, 48, 48);
-    g.addColorStop(0, '#1b1b1e');
-    g.addColorStop(1, '#131315');
-    tc.fillStyle = g;
-    tc.fillRect(0, 0, 48, 48);
-    tc.strokeStyle = 'rgba(255, 255, 255, 0.022)';
-    tc.lineWidth = 1;
-    tc.beginPath();
-    tc.moveTo(0, 0);  tc.lineTo(48, 48);
-    tc.moveTo(48, 0); tc.lineTo(0, 48);
-    tc.stroke();
-    tc.fillStyle = 'rgba(255, 255, 255, 0.045)';
-    tc.beginPath();
-    tc.arc(24, 24, 1.6, 0, Math.PI * 2);
-    tc.fill();
-    tc.fillStyle = 'rgba(255, 154, 60, 0.04)';
-    tc.beginPath();
-    tc.arc(0, 0, 1.2, 0, Math.PI * 2);
-    tc.arc(48, 48, 1.2, 0, Math.PI * 2);
-    tc.fill();
-    tc.fillStyle = 'rgba(58, 168, 255, 0.04)';
-    tc.beginPath();
-    tc.arc(48, 0, 1.2, 0, Math.PI * 2);
-    tc.arc(0, 48, 1.2, 0, Math.PI * 2);
-    tc.fill();
-    return t;
-  })();
+      const PORTAL_RX = 58;
+      const PORTAL_RY = 90;
+      const MAX_CUBES = 16;
+      const MOUSE_GAIN = 1.7;
+      const TURRET_INSET = 50;
 
-  function patternFor(c) {
-    if (!c._bgPattern) c._bgPattern = c.createPattern(bgTile, 'repeat');
-    return c._bgPattern;
-  }
+      // ------------------------------------------------------------------
+      // World state
+      // ------------------------------------------------------------------
+      const portals = { blue: null, orange: null };
+      const cubes = [];
+      const walls = [];
+      const turrets = [];
+      const noPortalZones = [];
+      const particles = [];
 
-  // ------------------------------------------------------------------
-  // Layout
-  // ------------------------------------------------------------------
-  function layout() {
-    canvas.width  = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
-    off.width     = canvas.width;
-    off.height    = canvas.height;
-    ctx._bgPattern = octx._bgPattern = null;
+      const cursor = {
+        x: 0,
+        y: 0,
+        currentPortal: null,
+        initialized: false
+      };
 
-    const cw = content.offsetWidth  || 900;
-    const ch = content.offsetHeight || 500;
-    contentX = Math.floor((canvas.width  - cw) / 2);
-    contentY = Math.floor((canvas.height - ch) / 2);
-    if (!cursor.initialized) {
-      cursor.x = canvas.width  / 2;
-      cursor.y = canvas.height / 2;
-    }
-    configureWalls();
-    configureTurrets();
-    computeTextObstacles();
-  }
+      let usingVirtualCursor = false;
+      let pointerLockFailed = false;
 
-  function computeTextObstacles() {
-    textObstacles = [];
-    const cRect = content.getBoundingClientRect();
-    const els = content.querySelectorAll('h1, h2, p, .quote');
-    for (const el of els) {
-      const r = el.getBoundingClientRect();
-      if (r.width < 2 || r.height < 2) continue;
-      textObstacles.push({
-        x: contentX + (r.left - cRect.left),
-        y: contentY + (r.top  - cRect.top),
-        w: r.width,
-        h: r.height
-      });
-    }
-  }
+      let contentX = 80;
+      let contentY = 90;
+      let clock = 0;
 
-  function configureWalls() {
-    walls.length = 0;
-    const cx = canvas.width / 2;
-    walls.push({
-      x: Math.floor(cx - 150),
-      y: Math.floor(canvas.height * 0.68),
-      w: 300,
-      h: 16
-    });
-    walls.push({
-      x: Math.floor(cx - 240),
-      y: Math.floor(canvas.height * 0.42),
-      w: 16,
-      h: 110
-    });
-    walls.push({
-      x: Math.floor(cx + 224),
-      y: Math.floor(canvas.height * 0.42),
-      w: 16,
-      h: 110
-    });
-    walls.push({
-      x: Math.floor(cx - 55),
-      y: Math.floor(canvas.height * 0.28),
-      w: 110,
-      h: 12
-    });
-  }
+      // ------------------------------------------------------------------
+      // Pre-rendered textures
+      // ------------------------------------------------------------------
 
-  new ResizeObserver(layout).observe(canvas);
-  new ResizeObserver(computeTextObstacles).observe(content);
-  requestAnimationFrame(layout);
+      // Background pattern tile — mirror of the CSS body background so the
+      // portal mirror (which can only sample from the canvas) sees the same
+      // pattern the user sees outside the portal.
+      const bgTile = (() => {
+        const t = document.createElement('canvas');
+        t.width = t.height = 44;
+        const tc = t.getContext('2d');
+        tc.fillStyle = '#f0eee6';
+        tc.fillRect(0, 0, 44, 44);
+        tc.strokeStyle = '#b5b2a5';
+        tc.lineWidth = 1;
+        tc.lineCap = 'round';
+        tc.beginPath();
+        tc.moveTo(22, 17); tc.lineTo(22, 27);
+        tc.moveTo(17, 22); tc.lineTo(27, 22);
+        tc.stroke();
+        return t;
+      })();
 
-  // ------------------------------------------------------------------
-  // Turrets — bolted to the canvas edges, fire cubes inward periodically.
-  // ------------------------------------------------------------------
-  function configureTurrets() {
-    if (turrets.length === 0) {
-      turrets.push({ dir:  1, cooldown: 0.8, recoil: 0, aim: 0, eyeT: 0 });
-      turrets.push({ dir: -1, cooldown: 1.7, recoil: 0, aim: 0, eyeT: Math.PI });
-    }
-    for (const k of turrets) {
-      k.x = k.dir > 0 ? TURRET_INSET : canvas.width - TURRET_INSET;
-      k.y = canvas.height / 2;
-    }
-  }
+      // Gray-paint tile for no-portal surfaces. A deterministic speckle so the
+      // texture doesn't shimmer frame-to-frame.
+      const grayPaintTile = (() => {
+        const t = document.createElement('canvas');
+        t.width = t.height = 24;
+        const tc = t.getContext('2d');
+        tc.fillStyle = '#6b6e75';
+        tc.fillRect(0, 0, 24, 24);
+        for (let y = 0; y < 24; y++) {
+          for (let x = 0; x < 24; x++) {
+            const h = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+            const v = h - Math.floor(h);
+            if (v < 0.18) {
+              tc.fillStyle = 'rgba(30, 33, 40, 0.55)';
+              tc.fillRect(x, y, 1, 1);
+            } else if (v > 0.86) {
+              tc.fillStyle = 'rgba(200, 202, 208, 0.35)';
+              tc.fillRect(x, y, 1, 1);
+            }
+          }
+        }
+        return t;
+      })();
 
-  function fireTurret(k) {
-    const aim   = k.aim + (Math.random() - 0.5) * 0.28;
-    const speed = 520 + Math.random() * 200;
-    const vx = k.dir * speed * Math.cos(aim);
-    const vy = speed * Math.sin(aim) - 50;
-    spawnCube({
-      x: k.x + k.dir * 36,
-      y: k.y,
-      vx, vy
-    });
-    k.recoil = 1;
-    // muzzle puff
-    for (let i = 0; i < 9; i++) {
-      const ang = aim + (Math.random() - 0.5) * 0.8;
-      const sp  = 180 + Math.random() * 160;
-      particles.push(makeParticle({
-        sx: k.x + k.dir * 36, sy: k.y,
-        vx: k.dir * sp * Math.cos(ang), vy: sp * Math.sin(ang),
-        life: 0.28 + Math.random() * 0.18,
-        color: '#ffd8a0',
-        size: 3 + Math.random() * 2,
-        kind: 'puff'
-      }));
-    }
-  }
-
-  function updateTurrets(dt, t) {
-    for (const k of turrets) {
-      k.aim = Math.sin(t * 0.8 + (k.dir > 0 ? 0 : Math.PI)) * 0.35;
-      k.recoil = Math.max(0, k.recoil - dt * 4);
-      k.eyeT += dt;
-      k.cooldown -= dt;
-      if (k.cooldown <= 0 && cubes.length < MAX_CUBES) {
-        fireTurret(k);
-        k.cooldown = 1.5 + Math.random() * 1.6;
+      function bgPatternFor(c) {
+        if (!c._bgPattern) c._bgPattern = c.createPattern(bgTile, 'repeat');
+        return c._bgPattern;
       }
-    }
-  }
-
-  // ------------------------------------------------------------------
-  // Pointer lock
-  // ------------------------------------------------------------------
-  function setVirtualCursor(on) {
-    usingVirtualCursor = on;
-    document.body.classList.toggle('hide-system-cursor', on);
-    if (on) {
-      lockHint.classList.add('hidden');
-    } else {
-      lockHint.classList.remove('hidden');
-      cursor.currentPortal = null;
-    }
-  }
-
-  document.addEventListener('pointerlockchange', () => {
-    setVirtualCursor(document.pointerLockElement === canvas);
-  });
-
-  function handleLockError() {
-    pointerLockFailed = true;
-    setVirtualCursor(false);
-    lockHint.textContent =
-      'pointer lock unavailable — using system cursor (the cursor won\'t teleport, but portals still work)';
-    lockHint.classList.add('error');
-    lockHint.classList.remove('hidden');
-  }
-  document.addEventListener('pointerlockerror', handleLockError);
-
-  // ------------------------------------------------------------------
-  // Input
-  // ------------------------------------------------------------------
-  addEventListener('contextmenu', e => e.preventDefault());
-
-  function canvasMouseToWorld(e) {
-    const r = canvas.getBoundingClientRect();
-    return {
-      x: (e.clientX - r.left) * (canvas.width  / r.width),
-      y: (e.clientY - r.top)  * (canvas.height / r.height)
-    };
-  }
-
-  function moveVirtualCursor(dx, dy) {
-    let nx = cursor.x + dx;
-    nx = Math.max(2, Math.min(canvas.width - 2, nx));
-    for (const w of walls) {
-      if (nx > w.x && nx < w.x + w.w && cursor.y > w.y && cursor.y < w.y + w.h) {
-        nx = dx > 0 ? w.x : w.x + w.w;
+      function grayPatternFor(c) {
+        if (!c._grayPattern) c._grayPattern = c.createPattern(grayPaintTile, 'repeat');
+        return c._grayPattern;
       }
-    }
-    cursor.x = nx;
 
-    let ny = cursor.y + dy;
-    ny = Math.max(2, Math.min(canvas.height - 2, ny));
-    for (const w of walls) {
-      if (cursor.x > w.x && cursor.x < w.x + w.w && ny > w.y && ny < w.y + w.h) {
-        ny = dy > 0 ? w.y : w.y + w.h;
+      // ------------------------------------------------------------------
+      // Layout
+      // ------------------------------------------------------------------
+      function layout() {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        off.width = canvas.width;
+        off.height = canvas.height;
+        ctx._bgPattern = octx._bgPattern = null;
+        ctx._grayPattern = octx._grayPattern = null;
+
+        const cw = content.offsetWidth || 900;
+        const ch = content.offsetHeight || 500;
+        contentX = Math.floor((canvas.width - cw) / 2);
+        contentY = Math.floor((canvas.height - ch) / 2);
+        if (!cursor.initialized) {
+          cursor.x = canvas.width / 2;
+          cursor.y = canvas.height / 2;
+        }
+        configureWalls();
+        configureTurrets();
+        configureNoPortalZones();
       }
-    }
-    cursor.y = ny;
-  }
 
-  canvas.addEventListener('mousemove', (e) => {
-    if (usingVirtualCursor) {
-      if (!cursor.initialized) {
-        cursor.x = canvas.width  / 2;
-        cursor.y = canvas.height / 2;
-        cursor.initialized = true;
+      function configureWalls() {
+        walls.length = 0;
+        const cx = canvas.width / 2;
+        walls.push({
+          x: Math.floor(cx - 150),
+          y: Math.floor(canvas.height * 0.68),
+          w: 300, h: 16
+        });
+        walls.push({
+          x: Math.floor(cx - 240),
+          y: Math.floor(canvas.height * 0.42),
+          w: 16, h: 110
+        });
+        walls.push({
+          x: Math.floor(cx + 224),
+          y: Math.floor(canvas.height * 0.42),
+          w: 16, h: 110
+        });
+        walls.push({
+          x: Math.floor(cx - 55),
+          y: Math.floor(canvas.height * 0.28),
+          w: 110, h: 12
+        });
       }
-      moveVirtualCursor((e.movementX || 0) * MOUSE_GAIN,
-                        (e.movementY || 0) * MOUSE_GAIN);
-    } else {
-      const p = canvasMouseToWorld(e);
-      cursor.x = p.x;
-      cursor.y = p.y;
-      cursor.initialized = true;
-    }
-  });
 
-  canvas.addEventListener('mousedown', (e) => {
-    e.preventDefault();
+      // A handful of "gray paint" surfaces scattered around the chamber where
+      // portals can't stick. They are purely visual + placement rules — cubes
+      // pass straight through them.
+      function configureNoPortalZones() {
+        noPortalZones.length = 0;
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        noPortalZones.push({
+          x: Math.floor(cx - 240), y: Math.floor(cy - 170),
+          w: 120, h: 64
+        });
+        noPortalZones.push({
+          x: Math.floor(cx + 120), y: Math.floor(cy - 180),
+          w: 120, h: 64
+        });
+        noPortalZones.push({
+          x: Math.floor(cx - 80), y: Math.floor(canvas.height * 0.84),
+          w: 160, h: 46
+        });
+      }
 
-    if (!usingVirtualCursor) {
-      const p = canvasMouseToWorld(e);
-      cursor.x = p.x; cursor.y = p.y; cursor.initialized = true;
-    }
+      new ResizeObserver(layout).observe(canvas);
+      requestAnimationFrame(layout);
 
-    const color = e.button === 0 ? 'blue' : e.button === 2 ? 'orange' : null;
-    if (color) {
-      let insideColor = null;
-      for (const c of ['blue', 'orange']) {
-        if (portals[c] && insideEllipse(cursor.x, cursor.y, portals[c])) {
-          insideColor = c; break;
+      // ------------------------------------------------------------------
+      // Turrets
+      // ------------------------------------------------------------------
+      function configureTurrets() {
+        if (turrets.length === 0) {
+          turrets.push({ dir: 1, cooldown: 0.8, recoil: 0, aim: 0, eyeT: 0 });
+          turrets.push({ dir: -1, cooldown: 1.7, recoil: 0, aim: 0, eyeT: Math.PI });
+        }
+        for (const k of turrets) {
+          k.x = k.dir > 0 ? TURRET_INSET : canvas.width - TURRET_INSET;
+          k.y = canvas.height / 2;
         }
       }
 
-      if (insideColor === color) {
-        portals[color] = null;
-        if (cursor.currentPortal === color) cursor.currentPortal = null;
-        for (const cube of cubes) {
-          if (cube.currentPortal === color) cube.currentPortal = null;
+      function fireTurret(k) {
+        const aim = k.aim + (Math.random() - 0.5) * 0.28;
+        const speed = 520 + Math.random() * 200;
+        const vx = k.dir * speed * Math.cos(aim);
+        const vy = speed * Math.sin(aim) - 50;
+        spawnCube({ x: k.x + k.dir * 36, y: k.y, vx, vy });
+        k.recoil = 1;
+        for (let i = 0; i < 9; i++) {
+          const ang = aim + (Math.random() - 0.5) * 0.8;
+          const sp = 180 + Math.random() * 160;
+          particles.push(makeParticle({
+            sx: k.x + k.dir * 36, sy: k.y,
+            vx: k.dir * sp * Math.cos(ang), vy: sp * Math.sin(ang),
+            life: 0.28 + Math.random() * 0.18,
+            color: '#ffd8a0',
+            size: 3 + Math.random() * 2,
+            kind: 'puff'
+          }));
         }
-      } else if (insideColor && insideColor !== color) {
-        // other-color click inside an open portal → no-op
-      } else {
-        portals[color] = { x: cursor.x, y: cursor.y, rx: PORTAL_RX, ry: PORTAL_RY, color };
-        if (usingVirtualCursor) cursor.currentPortal = color;
-        const otherColor = color === 'blue' ? 'orange' : 'blue';
-        const other = portals[otherColor];
-        for (const cube of cubes) {
-          if (!insideEllipse(cube.x, cube.y, portals[color])) continue;
-          if (other) {
-            // Portal dropped on a cube — fling it through to the partner.
-            const src = portals[color];
-            const entryX = cube.x, entryY = cube.y;
-            cube.x = other.x + (cube.x - src.x);
-            cube.y = other.y + (cube.y - src.y);
-            cube.currentPortal = otherColor;
-            emitTeleportTrail(
-              entryX, entryY, cube.x, cube.y,
-              PORTAL_COLORS[color].ring, PORTAL_COLORS[otherColor].ring,
-              14
-            );
-          } else {
-            // No partner yet — fall back to the first-placement rule so the
-            // cube doesn't instantly re-teleport on the next frame.
-            cube.currentPortal = color;
+      }
+
+      function updateTurrets(dt, t) {
+        for (const k of turrets) {
+          k.aim = Math.sin(t * 0.8 + (k.dir > 0 ? 0 : Math.PI)) * 0.35;
+          k.recoil = Math.max(0, k.recoil - dt * 4);
+          k.eyeT += dt;
+          k.cooldown -= dt;
+          if (k.cooldown <= 0 && cubes.length < MAX_CUBES) {
+            fireTurret(k);
+            k.cooldown = 1.5 + Math.random() * 1.6;
           }
         }
       }
-    }
 
-    if (!usingVirtualCursor && !pointerLockFailed && canvas.requestPointerLock) {
-      const req = canvas.requestPointerLock();
-      if (req && typeof req.catch === 'function') req.catch(handleLockError);
-    }
-  });
-
-  addEventListener('keydown', (e) => {
-    if (e.code === 'KeyR') {
-      cubes.length = 0;
-    } else if (e.code === 'KeyC') {
-      portals.blue = portals.orange = null;
-      cursor.currentPortal = null;
-      for (const c of cubes) c.currentPortal = null;
-    } else if (e.code === 'Space') {
-      e.preventDefault();
-      const startX = cursor.initialized ? cursor.x : canvas.width / 2;
-      const startY = cursor.initialized ? cursor.y : canvas.height - 20;
-      spawnCube({
-        x: startX, y: startY,
-        vx: (Math.random() - 0.5) * 520,
-        vy: -(340 + Math.random() * 380)
-      });
-    }
-  });
-
-  // ------------------------------------------------------------------
-  // Cubes
-  // ------------------------------------------------------------------
-  const CUBE_PALETTE = ['#ff7a59', '#60c9ff', '#ffd166', '#a679ff', '#6ddfb8', '#ff6b9d'];
-
-  function spawnCube(init = {}) {
-    if (cubes.length >= MAX_CUBES) cubes.shift();
-    cubes.push({
-      x: init.x ?? canvas.width / 2,
-      y: init.y ?? canvas.height - 20,
-      vx: init.vx ?? 0,
-      vy: init.vy ?? -400,
-      size: 26 + Math.random() * 8,
-      color: CUBE_PALETTE[Math.floor(Math.random() * CUBE_PALETTE.length)],
-      rot: Math.random() * Math.PI,
-      vrot: (Math.random() - 0.5) * 4,
-      currentPortal: null
-    });
-  }
-
-  // ------------------------------------------------------------------
-  // Physics
-  // ------------------------------------------------------------------
-  const GRAVITY = 1500;
-
-  function insideEllipse(x, y, p) {
-    const dx = x - p.x, dy = y - p.y;
-    return (dx * dx) / (p.rx * p.rx) + (dy * dy) / (p.ry * p.ry) <= 1;
-  }
-
-  function aabbOverlap(c, o) {
-    const h = c.size / 2;
-    return c.x + h > o.x && c.x - h < o.x + o.w &&
-           c.y + h > o.y && c.y - h < o.y + o.h;
-  }
-
-  function resolveSideWalls(c) {
-    const h = c.size / 2;
-    if (c.x - h < 0)            { c.x = h;                c.vx =  Math.abs(c.vx) * 0.45; }
-    if (c.x + h > canvas.width) { c.x = canvas.width - h; c.vx = -Math.abs(c.vx) * 0.45; }
-    if (c.y - h < 0)            { c.y = h;                c.vy =  Math.abs(c.vy) * 0.3;  }
-    // No floor — cubes fall through the bottom.
-  }
-
-  function step(dt) {
-    const obstacles = textObstacles.concat(walls);
-
-    for (const c of cubes) {
-      c.vy += GRAVITY * dt;
-      c.vx *= 0.999;
-
-      c.x += c.vx * dt;
-      for (const o of obstacles) {
-        if (!aabbOverlap(c, o)) continue;
-        const h = c.size / 2;
-        if (c.vx > 0)      c.x = o.x - h;
-        else if (c.vx < 0) c.x = o.x + o.w + h;
-        c.vx = -c.vx * 0.35;
-      }
-
-      c.y += c.vy * dt;
-      for (const o of obstacles) {
-        if (!aabbOverlap(c, o)) continue;
-        const h = c.size / 2;
-        const landed = c.vy > 0;
-        if (landed)        c.y = o.y - h;
-        else if (c.vy < 0) c.y = o.y + o.h + h;
-        c.vy = -c.vy * 0.25;
-        if (Math.abs(c.vy) < 40) c.vy = 0;
-        if (landed) c.vx *= 0.85;
-      }
-
-      resolveSideWalls(c);
-
-      c.rot += c.vrot * dt;
-      if (Math.abs(c.vy) < 20 && Math.abs(c.vx) < 20) c.vrot *= 0.9;
-
-      if (c.y > canvas.height + 200) c.dead = true;
-    }
-
-    for (let i = cubes.length - 1; i >= 0; i--) {
-      if (cubes[i].dead) cubes.splice(i, 1);
-    }
-
-    for (const c of cubes) portalTransit(c);
-    if (usingVirtualCursor) portalTransit(cursor, /*isMouse*/ true);
-  }
-
-  function portalTransit(entity, isMouse = false) {
-    let inside = null;
-    for (const color of ['blue', 'orange']) {
-      const p = portals[color];
-      if (p && insideEllipse(entity.x, entity.y, p)) { inside = color; break; }
-    }
-    if (inside) {
-      if (entity.currentPortal !== inside) {
-        const otherColor = inside === 'blue' ? 'orange' : 'blue';
-        const other = portals[otherColor];
-        if (other) {
-          const src = portals[inside];
-          const entryX = entity.x, entryY = entity.y;
-          entity.x = other.x + (entity.x - src.x);
-          entity.y = other.y + (entity.y - src.y);
-          entity.currentPortal = otherColor;
-          emitTeleportTrail(
-            entryX, entryY, entity.x, entity.y,
-            PORTAL_COLORS[inside].ring, PORTAL_COLORS[otherColor].ring,
-            isMouse ? 26 : 14
-          );
+      // ------------------------------------------------------------------
+      // Pointer lock
+      // ------------------------------------------------------------------
+      function setVirtualCursor(on) {
+        usingVirtualCursor = on;
+        document.body.classList.toggle('hide-system-cursor', on);
+        if (on) {
+          lockHint.classList.add('hidden');
         } else {
-          entity.currentPortal = inside;
+          lockHint.classList.remove('hidden');
+          cursor.currentPortal = null;
         }
       }
-    } else {
-      entity.currentPortal = null;
-    }
-  }
 
-  // ------------------------------------------------------------------
-  // Particles
-  // ------------------------------------------------------------------
-  function makeParticle(p) {
-    return {
-      sx: p.sx, sy: p.sy,
-      vx: p.vx || 0, vy: p.vy || 0,
-      life: p.life, age: 0,
-      color: p.color,
-      size: p.size ?? 3,
-      kind: p.kind ?? 'spark',
-      ex: p.ex, ey: p.ey,
-      colorEnd: p.colorEnd ?? p.color,
-      delay: p.delay ?? 0
-    };
-  }
+      document.addEventListener('pointerlockchange', () => {
+        setVirtualCursor(document.pointerLockElement === canvas);
+      });
 
-  function emitTeleportTrail(sx, sy, ex, ey, colorStart, colorEnd, count) {
-    for (let i = 0; i < count; i++) {
-      const jx = (Math.random() - 0.5) * 16;
-      const jy = (Math.random() - 0.5) * 24;
-      particles.push(makeParticle({
-        sx: sx + jx, sy: sy + jy,
-        ex: ex + jx, ey: ey + jy,
-        life: 0.35 + Math.random() * 0.25,
-        delay: Math.random() * 0.12,
-        color: colorStart,
-        colorEnd: colorEnd,
-        size: 2 + Math.random() * 2.5,
-        kind: 'trail'
-      }));
-    }
-    for (const [x, y, col] of [[sx, sy, colorStart], [ex, ey, colorEnd]]) {
-      for (let i = 0; i < 10; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const sp = 80 + Math.random() * 140;
-        particles.push(makeParticle({
-          sx: x, sy: y,
-          vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-          life: 0.25 + Math.random() * 0.25,
-          color: col,
-          size: 2 + Math.random() * 2,
-          kind: 'spark'
-        }));
+      function handleLockError() {
+        pointerLockFailed = true;
+        setVirtualCursor(false);
+        lockHint.textContent =
+          'pointer lock unavailable — using system cursor (portals still work)';
+        lockHint.classList.add('error');
+        lockHint.classList.remove('hidden');
       }
-    }
-  }
+      document.addEventListener('pointerlockerror', handleLockError);
 
-  function updateParticles(dt) {
-    for (const p of particles) {
-      if (p.delay > 0) { p.delay -= dt; continue; }
-      p.age += dt;
-      if (p.kind !== 'trail') {
-        p.vy += 160 * dt;
-        p.sx += p.vx * dt;
-        p.sy += p.vy * dt;
+      // ------------------------------------------------------------------
+      // Input
+      // ------------------------------------------------------------------
+      addEventListener('contextmenu', e => e.preventDefault());
+
+      function canvasMouseToWorld(e) {
+        const r = canvas.getBoundingClientRect();
+        return {
+          x: (e.clientX - r.left) * (canvas.width / r.width),
+          y: (e.clientY - r.top) * (canvas.height / r.height)
+        };
       }
-    }
-    for (let i = particles.length - 1; i >= 0; i--) {
-      if (particles[i].age >= particles[i].life) particles.splice(i, 1);
-    }
-  }
 
-  // ------------------------------------------------------------------
-  // Rendering palette
-  // ------------------------------------------------------------------
-  const PORTAL_COLORS = {
-    blue:   { ring: '#4ab8ff', glow: '#1d7dd6', halo: 'rgba(74, 184, 255, 0.18)' },
-    orange: { ring: '#ffa44a', glow: '#d4711b', halo: 'rgba(255, 164,  74, 0.18)' }
-  };
-
-  // ------------------------------------------------------------------
-  // World layer drawing — all take a generic 2D context so they work for
-  // both the main canvas and the offscreen compositor.
-  // ------------------------------------------------------------------
-  function drawBackground(c) {
-    c.save();
-    c.fillStyle = patternFor(c);
-    c.fillRect(0, 0, canvas.width, canvas.height);
-    const g = c.createRadialGradient(
-      canvas.width / 2, canvas.height * 0.4, 0,
-      canvas.width / 2, canvas.height * 0.4, Math.max(canvas.width, canvas.height) * 0.7
-    );
-    g.addColorStop(0, 'rgba(255, 255, 255, 0.04)');
-    g.addColorStop(1, 'rgba(0, 0, 0, 0.55)');
-    c.fillStyle = g;
-    c.fillRect(0, 0, canvas.width, canvas.height);
-    c.restore();
-  }
-
-  function drawWall(c, w) {
-    const grad = c.createLinearGradient(w.x, w.y, w.x, w.y + w.h);
-    grad.addColorStop(0, '#3f3f44');
-    grad.addColorStop(0.5, '#26262a');
-    grad.addColorStop(1, '#17171a');
-    c.fillStyle = grad;
-    c.fillRect(w.x, w.y, w.w, w.h);
-    c.fillStyle = 'rgba(255, 255, 255, 0.10)';
-    c.fillRect(w.x, w.y, w.w, 2);
-    c.fillStyle = 'rgba(0, 0, 0, 0.35)';
-    c.fillRect(w.x, w.y + w.h - 2, w.w, 2);
-    c.fillStyle = 'rgba(255, 164, 60, 0.25)';
-    for (let sx = w.x + 6; sx < w.x + w.w - 4; sx += 14) {
-      c.fillRect(sx, w.y + w.h / 2 - 1, 6, 2);
-    }
-    c.strokeStyle = '#5a5a60';
-    c.lineWidth = 1;
-    c.strokeRect(w.x + 0.5, w.y + 0.5, w.w - 1, w.h - 1);
-  }
-
-  function drawTurret(c, k) {
-    const x = k.x - k.dir * k.recoil * 10;
-    const y = k.y;
-    c.save();
-    c.translate(x, y);
-
-    // base plate
-    c.fillStyle = '#4a4a4e';
-    c.strokeStyle = '#7a7a80';
-    c.lineWidth = 2;
-    c.beginPath();
-    c.arc(0, 0, 26, 0, Math.PI * 2);
-    c.fill();
-    c.stroke();
-
-    // inner ring
-    c.strokeStyle = '#2a2a2e';
-    c.lineWidth = 3;
-    c.beginPath();
-    c.arc(0, 0, 20, 0, Math.PI * 2);
-    c.stroke();
-
-    // aim-bobbed body + barrel
-    c.rotate(k.aim * 0.6);
-    const bw = 54, bh = 20;
-    const bx = k.dir > 0 ? 0 : -bw;
-    const grad = c.createLinearGradient(0, -bh / 2, 0, bh / 2);
-    grad.addColorStop(0, '#5a5c60');
-    grad.addColorStop(0.5, '#2a2a2e');
-    grad.addColorStop(1, '#16161a');
-    c.fillStyle = grad;
-    c.strokeStyle = '#8d8d93';
-    c.lineWidth = 2;
-    c.beginPath();
-    c.roundRect(bx, -bh / 2, bw, bh, 4);
-    c.fill();
-    c.stroke();
-
-    // muzzle
-    c.fillStyle = '#0a0a0c';
-    const mw = 8;
-    const mx = k.dir > 0 ? bw - mw - 2 : -bw + 2;
-    c.fillRect(mx, -bh / 2 + 3, mw, bh - 6);
-
-    // rivets on the barrel
-    c.fillStyle = '#888';
-    for (const rx of [7, bw - 7]) {
-      const px = k.dir > 0 ? rx : -rx;
-      c.beginPath();
-      c.arc(px, -bh / 2 + 3, 1.5, 0, Math.PI * 2);
-      c.arc(px,  bh / 2 - 3, 1.5, 0, Math.PI * 2);
-      c.fill();
-    }
-
-    // glowing red eye on the body cap (Portal-turret nod)
-    const eyePulse = 0.7 + 0.3 * Math.sin(k.eyeT * 3);
-    c.shadowColor = 'rgba(255, 80, 60, 0.9)';
-    c.shadowBlur  = 10 * eyePulse;
-    c.fillStyle = `rgba(255, 90, 70, ${eyePulse})`;
-    c.beginPath();
-    c.arc(k.dir * 6, 0, 3.2, 0, Math.PI * 2);
-    c.fill();
-    c.shadowBlur = 0;
-
-    c.restore();
-  }
-
-  function drawCube(c, cube) {
-    const s = cube.size;
-    c.save();
-    c.translate(cube.x, cube.y);
-    c.rotate(cube.rot);
-    c.fillStyle = cube.color;
-    c.strokeStyle = 'rgba(0, 0, 0, 0.65)';
-    c.lineWidth = 2;
-    c.fillRect(-s / 2, -s / 2, s, s);
-    c.strokeRect(-s / 2, -s / 2, s, s);
-    c.beginPath();
-    c.moveTo(-s * 0.35, -s * 0.35); c.lineTo(s * 0.35, s * 0.35);
-    c.moveTo(s * 0.35, -s * 0.35);  c.lineTo(-s * 0.35, s * 0.35);
-    c.stroke();
-    c.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    c.beginPath();
-    c.arc(0, 0, s * 0.12, 0, Math.PI * 2);
-    c.fill();
-    c.restore();
-  }
-
-  function renderWorld(c, snapshot) {
-    c.save();
-    c.setTransform(1, 0, 0, 1, 0, 0);
-    drawBackground(c);
-    for (const w of walls) drawWall(c, w);
-    if (snapshot) {
-      const t = c.drawElementImage(snapshot, contentX, contentY);
-      if (t) content.style.transform = t.toString();
-    } else {
-      // Very first paint — no snapshot exists yet, so fall back to drawing
-      // the live Element so the initial frame isn't blank.
-      try {
-        const t = c.drawElementImage(content, contentX, contentY);
-        if (t) content.style.transform = t.toString();
-      } catch (_) {}
-    }
-    for (const k of turrets) drawTurret(c, k);
-    for (const cube of cubes) drawCube(c, cube);
-    c.restore();
-  }
-
-  // ------------------------------------------------------------------
-  // Portal rendering
-  // ------------------------------------------------------------------
-  function drawDistortedPortalView(c, self, other, time, seed) {
-    const stripH = 4;
-    const margin = 14;
-    const top = self.y - self.ry - margin;
-    const bot = self.y + self.ry + margin;
-
-    for (let y = top; y < bot; y += stripH) {
-      const yRel = y - self.y;
-      const xJit =
-        Math.sin(time * 2.5 + yRel * 0.09 + seed)       * 3.0 +
-        Math.sin(time * 1.6 + yRel * 0.17 + seed * 2.1) * 1.8;
-
-      const drawW = 2 * self.rx + 2 * margin;
-      const drawX = self.x - self.rx - margin;
-      const drawY = y;
-
-      const srcX = (drawX - self.x + other.x) + xJit;
-      const srcY = (drawY - self.y + other.y);
-
-      const sx  = Math.max(0, srcX);
-      const sy  = Math.max(0, srcY);
-      const sx2 = Math.min(off.width,  srcX + drawW);
-      const sy2 = Math.min(off.height, srcY + stripH);
-      const sw  = sx2 - sx;
-      const sh  = sy2 - sy;
-      if (sw <= 0 || sh <= 0) continue;
-
-      const dx = drawX + (sx - srcX);
-      const dy = drawY + (sy - srcY);
-      c.drawImage(off, sx, sy, sw, sh, dx, dy, sw, sh);
-    }
-  }
-
-  function drawPortalRing(c, p, palette) {
-    c.save();
-    c.shadowColor = palette.glow;
-    c.shadowBlur  = 28;
-    c.strokeStyle = palette.ring;
-    c.lineWidth   = 5;
-    c.beginPath();
-    c.ellipse(p.x, p.y, p.rx, p.ry, 0, 0, Math.PI * 2);
-    c.stroke();
-    c.shadowBlur  = 10;
-    c.lineWidth   = 2;
-    c.strokeStyle = 'rgba(255, 255, 255, 0.55)';
-    c.beginPath();
-    c.ellipse(p.x, p.y, p.rx * 0.92, p.ry * 0.92, 0, 0, Math.PI * 2);
-    c.stroke();
-    c.restore();
-  }
-
-  function drawParticles(c) {
-    for (const p of particles) {
-      if (p.delay > 0) continue;
-      const t = Math.min(1, p.age / p.life);
-      let x, y, size, alpha, color;
-      if (p.kind === 'trail') {
-        const e = 1 - (1 - t) * (1 - t);
-        x = p.sx + (p.ex - p.sx) * e;
-        y = p.sy + (p.ey - p.sy) * e;
-        color = t < 0.5 ? p.color : p.colorEnd;
-        alpha = Math.sin(t * Math.PI);
-        size  = p.size * (1 + (1 - Math.abs(t - 0.5) * 2) * 0.6);
-      } else {
-        x = p.sx; y = p.sy;
-        color = p.color;
-        alpha = 1 - t;
-        size  = p.size * (1 - t * 0.3);
+      function isNoPortalHere(x, y) {
+        for (const z of noPortalZones) {
+          if (x >= z.x && x < z.x + z.w && y >= z.y && y < z.y + z.h) return true;
+        }
+        return false;
       }
-      c.save();
-      c.globalAlpha = alpha;
-      c.fillStyle   = color;
-      c.shadowColor = color;
-      c.shadowBlur  = 12;
-      c.beginPath();
-      c.arc(x, y, size, 0, Math.PI * 2);
-      c.fill();
-      c.restore();
-    }
-  }
 
-  function drawCursor(c) {
-    if (!usingVirtualCursor || !cursor.initialized) return;
-    c.save();
-    c.translate(cursor.x, cursor.y);
-    c.shadowColor = 'rgba(0, 0, 0, 0.8)';
-    c.shadowBlur  = 6;
+      function moveVirtualCursor(dx, dy) {
+        let nx = cursor.x + dx;
+        nx = Math.max(2, Math.min(canvas.width - 2, nx));
+        for (const w of walls) {
+          if (nx > w.x && nx < w.x + w.w && cursor.y > w.y && cursor.y < w.y + w.h) {
+            nx = dx > 0 ? w.x : w.x + w.w;
+          }
+        }
+        cursor.x = nx;
 
-    c.strokeStyle = '#fff';
-    c.lineWidth   = 1.5;
-    const r = 10;
-    c.beginPath();
-    c.moveTo(-r, 0); c.lineTo(-3, 0);
-    c.moveTo(r, 0);  c.lineTo(3, 0);
-    c.moveTo(0, -r); c.lineTo(0, -3);
-    c.moveTo(0, r);  c.lineTo(0, 3);
-    c.stroke();
-    c.beginPath();
-    c.arc(0, 0, 2.2, 0, Math.PI * 2);
-    c.stroke();
-
-    const arcR    = 20;
-    const arcSpan = Math.PI * 0.38;
-    const blueOn   = !!portals.blue;
-    const orangeOn = !!portals.orange;
-
-    c.lineWidth = 3;
-    c.lineCap = 'round';
-    c.strokeStyle = blueOn ? PORTAL_COLORS.blue.ring : 'rgba(74, 184, 255, 0.28)';
-    c.shadowColor = PORTAL_COLORS.blue.ring;
-    c.shadowBlur  = blueOn ? 12 : 0;
-    c.beginPath();
-    c.arc(0, 0, arcR, Math.PI - arcSpan, Math.PI + arcSpan);
-    c.stroke();
-
-    c.strokeStyle = orangeOn ? PORTAL_COLORS.orange.ring : 'rgba(255, 164, 74, 0.28)';
-    c.shadowColor = PORTAL_COLORS.orange.ring;
-    c.shadowBlur  = orangeOn ? 12 : 0;
-    c.beginPath();
-    c.arc(0, 0, arcR, -arcSpan, arcSpan);
-    c.stroke();
-    c.restore();
-  }
-
-  // ------------------------------------------------------------------
-  // Paint
-  // ------------------------------------------------------------------
-  canvas.onpaint = () => {
-    ctx.reset();
-    octx.reset();
-
-    let snapshot = null;
-    try { snapshot = canvas.captureElementImage(content); } catch (_) { /* first paint */ }
-
-    // Render the world directly onto the main (layoutsubtree) canvas.
-    // drawElementImage is only reliably supported when the target context
-    // belongs to the canvas whose children are being drawn — calling it on
-    // an unrelated offscreen 2D context fails to paint the element in the
-    // current Chromium prototype.
-    renderWorld(ctx, snapshot);
-
-    // Copy the composed world into the offscreen buffer so the portal
-    // mirror step below can sample from a clean, portal-free snapshot.
-    octx.drawImage(canvas, 0, 0);
-
-    computeTextObstacles();
-
-    for (const color of ['blue', 'orange']) {
-      const self = portals[color];
-      if (!self) continue;
-      const other = portals[color === 'blue' ? 'orange' : 'blue'];
-      const pal   = PORTAL_COLORS[color];
-      const seed  = color === 'blue' ? 1.3 : 4.7;
-
-      ctx.save();
-      const clipPath = new Path2D();
-      clipPath.ellipse(self.x, self.y, self.rx, self.ry, 0, 0, Math.PI * 2);
-      ctx.clip(clipPath);
-
-      if (other) {
-        drawDistortedPortalView(ctx, self, other, clock, seed);
-        ctx.fillStyle = pal.halo;
-        ctx.fillRect(self.x - self.rx - 2, self.y - self.ry - 2,
-                     self.rx * 2 + 4,       self.ry * 2 + 4);
-      } else {
-        const g = ctx.createRadialGradient(self.x, self.y, 0,
-                                           self.x, self.y, Math.max(self.rx, self.ry));
-        g.addColorStop(0, pal.halo);
-        g.addColorStop(1, 'rgba(0, 0, 0, 0.8)');
-        ctx.fillStyle = g;
-        ctx.fillRect(self.x - self.rx - 2, self.y - self.ry - 2,
-                     self.rx * 2 + 4,       self.ry * 2 + 4);
+        let ny = cursor.y + dy;
+        ny = Math.max(2, Math.min(canvas.height - 2, ny));
+        for (const w of walls) {
+          if (cursor.x > w.x && cursor.x < w.x + w.w && ny > w.y && ny < w.y + w.h) {
+            ny = dy > 0 ? w.y : w.y + w.h;
+          }
+        }
+        cursor.y = ny;
       }
-      ctx.restore();
-    }
 
-    if (portals.blue)   drawPortalRing(ctx, portals.blue,   PORTAL_COLORS.blue);
-    if (portals.orange) drawPortalRing(ctx, portals.orange, PORTAL_COLORS.orange);
+      canvas.addEventListener('mousemove', (e) => {
+        if (usingVirtualCursor) {
+          if (!cursor.initialized) {
+            cursor.x = canvas.width / 2;
+            cursor.y = canvas.height / 2;
+            cursor.initialized = true;
+          }
+          moveVirtualCursor((e.movementX || 0) * MOUSE_GAIN,
+            (e.movementY || 0) * MOUSE_GAIN);
+        } else {
+          const p = canvasMouseToWorld(e);
+          cursor.x = p.x;
+          cursor.y = p.y;
+          cursor.initialized = true;
+        }
+      });
 
-    drawParticles(ctx);
-    drawCursor(ctx);
+      canvas.addEventListener('mousedown', (e) => {
+        e.preventDefault();
 
-    if (snapshot) snapshot.close();
-  };
+        if (!usingVirtualCursor) {
+          const p = canvasMouseToWorld(e);
+          cursor.x = p.x; cursor.y = p.y; cursor.initialized = true;
+        }
 
-  // ------------------------------------------------------------------
-  // Main loop
-  // ------------------------------------------------------------------
-  let startT = performance.now();
-  let lastT  = startT;
-  function frame(now) {
-    const dt = Math.min(1 / 30, (now - lastT) / 1000);
-    clock = (now - startT) / 1000;
-    lastT = now;
-    updateTurrets(dt, clock);
-    step(dt);
-    updateParticles(dt);
-    canvas.requestPaint();
-    requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-})();
-</script>
+        const color = e.button === 0 ? 'blue' : e.button === 2 ? 'orange' : null;
+        if (color) {
+          let insideColor = null;
+          for (const c of ['blue', 'orange']) {
+            if (portals[c] && insideEllipse(cursor.x, cursor.y, portals[c])) {
+              insideColor = c; break;
+            }
+          }
+
+          if (insideColor === color) {
+            // Clearing a same-color portal is always allowed, even over a
+            // gray-paint zone (the portal is already there).
+            portals[color] = null;
+            if (cursor.currentPortal === color) cursor.currentPortal = null;
+            for (const cube of cubes) {
+              if (cube.currentPortal === color) cube.currentPortal = null;
+            }
+          } else if (insideColor && insideColor !== color) {
+            // other-color click inside an open portal → no-op
+          } else if (!isNoPortalHere(cursor.x, cursor.y)) {
+            portals[color] = { x: cursor.x, y: cursor.y, rx: PORTAL_RX, ry: PORTAL_RY, color };
+            if (usingVirtualCursor) cursor.currentPortal = color;
+            const otherColor = color === 'blue' ? 'orange' : 'blue';
+            const other = portals[otherColor];
+            for (const cube of cubes) {
+              if (!insideEllipse(cube.x, cube.y, portals[color])) continue;
+              if (other) {
+                const src = portals[color];
+                const entryX = cube.x, entryY = cube.y;
+                cube.x = other.x + (cube.x - src.x);
+                cube.y = other.y + (cube.y - src.y);
+                cube.currentPortal = otherColor;
+                emitTeleportTrail(
+                  entryX, entryY, cube.x, cube.y,
+                  PORTAL_COLORS[color].ring, PORTAL_COLORS[otherColor].ring,
+                  14
+                );
+              } else {
+                cube.currentPortal = color;
+              }
+            }
+          }
+          // else: gray-paint zone — silently refuse placement.
+        }
+
+        if (!usingVirtualCursor && !pointerLockFailed && canvas.requestPointerLock) {
+          const req = canvas.requestPointerLock();
+          if (req && typeof req.catch === 'function') req.catch(handleLockError);
+        }
+      });
+
+      addEventListener('keydown', (e) => {
+        if (e.code === 'KeyR') {
+          cubes.length = 0;
+        } else if (e.code === 'KeyC') {
+          portals.blue = portals.orange = null;
+          cursor.currentPortal = null;
+          for (const c of cubes) c.currentPortal = null;
+        } else if (e.code === 'Space') {
+          e.preventDefault();
+          const startX = cursor.initialized ? cursor.x : canvas.width / 2;
+          const startY = cursor.initialized ? cursor.y : canvas.height - 20;
+          spawnCube({
+            x: startX, y: startY,
+            vx: (Math.random() - 0.5) * 520,
+            vy: -(340 + Math.random() * 380)
+          });
+        }
+      });
+
+      // ------------------------------------------------------------------
+      // Cubes
+      // ------------------------------------------------------------------
+      const CUBE_PALETTE = ['#ff7a59', '#60c9ff', '#ffc640', '#a679ff', '#5ad3a4', '#ff6b9d'];
+
+      function spawnCube(init = {}) {
+        if (cubes.length >= MAX_CUBES) cubes.shift();
+        cubes.push({
+          x: init.x ?? canvas.width / 2,
+          y: init.y ?? canvas.height - 20,
+          vx: init.vx ?? 0,
+          vy: init.vy ?? -400,
+          size: 26 + Math.random() * 8,
+          color: CUBE_PALETTE[Math.floor(Math.random() * CUBE_PALETTE.length)],
+          rot: Math.random() * Math.PI,
+          vrot: (Math.random() - 0.5) * 4,
+          currentPortal: null
+        });
+      }
+
+      // ------------------------------------------------------------------
+      // Physics
+      //
+      // Text is purely presentational now — it doesn't participate in cube
+      // collisions. Only walls act as obstacles.
+      // ------------------------------------------------------------------
+      const GRAVITY = 1500;
+
+      function insideEllipse(x, y, p) {
+        const dx = x - p.x, dy = y - p.y;
+        return (dx * dx) / (p.rx * p.rx) + (dy * dy) / (p.ry * p.ry) <= 1;
+      }
+
+      function aabbOverlap(c, o) {
+        const h = c.size / 2;
+        return c.x + h > o.x && c.x - h < o.x + o.w &&
+          c.y + h > o.y && c.y - h < o.y + o.h;
+      }
+
+      function resolveSideWalls(c) {
+        const h = c.size / 2;
+        if (c.x - h < 0) { c.x = h; c.vx = Math.abs(c.vx) * 0.45; }
+        if (c.x + h > canvas.width) { c.x = canvas.width - h; c.vx = -Math.abs(c.vx) * 0.45; }
+        if (c.y - h < 0) { c.y = h; c.vy = Math.abs(c.vy) * 0.3; }
+      }
+
+      function step(dt) {
+        for (const c of cubes) {
+          c.vy += GRAVITY * dt;
+          c.vx *= 0.999;
+
+          c.x += c.vx * dt;
+          for (const o of walls) {
+            if (!aabbOverlap(c, o)) continue;
+            const h = c.size / 2;
+            if (c.vx > 0) c.x = o.x - h;
+            else if (c.vx < 0) c.x = o.x + o.w + h;
+            c.vx = -c.vx * 0.35;
+          }
+
+          c.y += c.vy * dt;
+          for (const o of walls) {
+            if (!aabbOverlap(c, o)) continue;
+            const h = c.size / 2;
+            const landed = c.vy > 0;
+            if (landed) c.y = o.y - h;
+            else if (c.vy < 0) c.y = o.y + o.h + h;
+            c.vy = -c.vy * 0.25;
+            if (Math.abs(c.vy) < 40) c.vy = 0;
+            if (landed) c.vx *= 0.85;
+          }
+
+          resolveSideWalls(c);
+
+          c.rot += c.vrot * dt;
+          if (Math.abs(c.vy) < 20 && Math.abs(c.vx) < 20) c.vrot *= 0.9;
+
+          if (c.y > canvas.height + 200) c.dead = true;
+        }
+
+        for (let i = cubes.length - 1; i >= 0; i--) {
+          if (cubes[i].dead) cubes.splice(i, 1);
+        }
+
+        for (const c of cubes) portalTransit(c);
+        if (ENABLE_CURSOR_PORTAL && usingVirtualCursor) {
+          portalTransit(cursor, /*isMouse*/ true);
+        }
+      }
+
+      function portalTransit(entity, isMouse = false) {
+        let inside = null;
+        for (const color of ['blue', 'orange']) {
+          const p = portals[color];
+          if (p && insideEllipse(entity.x, entity.y, p)) { inside = color; break; }
+        }
+        if (inside) {
+          if (entity.currentPortal !== inside) {
+            const otherColor = inside === 'blue' ? 'orange' : 'blue';
+            const other = portals[otherColor];
+            if (other) {
+              const src = portals[inside];
+              const entryX = entity.x, entryY = entity.y;
+              entity.x = other.x + (entity.x - src.x);
+              entity.y = other.y + (entity.y - src.y);
+              entity.currentPortal = otherColor;
+              emitTeleportTrail(
+                entryX, entryY, entity.x, entity.y,
+                PORTAL_COLORS[inside].ring, PORTAL_COLORS[otherColor].ring,
+                isMouse ? 26 : 14
+              );
+            } else {
+              entity.currentPortal = inside;
+            }
+          }
+        } else {
+          entity.currentPortal = null;
+        }
+      }
+
+      // ------------------------------------------------------------------
+      // Particles
+      // ------------------------------------------------------------------
+      function makeParticle(p) {
+        return {
+          sx: p.sx, sy: p.sy,
+          vx: p.vx || 0, vy: p.vy || 0,
+          life: p.life, age: 0,
+          color: p.color,
+          size: p.size ?? 3,
+          kind: p.kind ?? 'spark',
+          ex: p.ex, ey: p.ey,
+          colorEnd: p.colorEnd ?? p.color,
+          delay: p.delay ?? 0
+        };
+      }
+
+      function emitTeleportTrail(sx, sy, ex, ey, colorStart, colorEnd, count) {
+        for (let i = 0; i < count; i++) {
+          const jx = (Math.random() - 0.5) * 16;
+          const jy = (Math.random() - 0.5) * 24;
+          particles.push(makeParticle({
+            sx: sx + jx, sy: sy + jy,
+            ex: ex + jx, ey: ey + jy,
+            life: 0.35 + Math.random() * 0.25,
+            delay: Math.random() * 0.12,
+            color: colorStart,
+            colorEnd: colorEnd,
+            size: 2 + Math.random() * 2.5,
+            kind: 'trail'
+          }));
+        }
+        for (const [x, y, col] of [[sx, sy, colorStart], [ex, ey, colorEnd]]) {
+          for (let i = 0; i < 10; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const sp = 80 + Math.random() * 140;
+            particles.push(makeParticle({
+              sx: x, sy: y,
+              vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+              life: 0.25 + Math.random() * 0.25,
+              color: col,
+              size: 2 + Math.random() * 2,
+              kind: 'spark'
+            }));
+          }
+        }
+      }
+
+      function updateParticles(dt) {
+        for (const p of particles) {
+          if (p.delay > 0) { p.delay -= dt; continue; }
+          p.age += dt;
+          if (p.kind !== 'trail') {
+            p.vy += 160 * dt;
+            p.sx += p.vx * dt;
+            p.sy += p.vy * dt;
+          }
+        }
+        for (let i = particles.length - 1; i >= 0; i--) {
+          if (particles[i].age >= particles[i].life) particles.splice(i, 1);
+        }
+      }
+
+      // ------------------------------------------------------------------
+      // Rendering palette
+      // ------------------------------------------------------------------
+      const PORTAL_COLORS = {
+        blue: { ring: '#1e9fe0', glow: '#0c78b0', halo: 'rgba(30, 159, 224, 0.20)' },
+        orange: { ring: '#ed8a20', glow: '#b8651a', halo: 'rgba(237, 138, 32,  0.20)' }
+      };
+      const DISABLED_COLOR = '#c53030';
+
+      // ------------------------------------------------------------------
+      // World drawing
+      // ------------------------------------------------------------------
+      function drawBackgroundPattern(c) {
+        c.save();
+        c.fillStyle = bgPatternFor(c);
+        c.fillRect(0, 0, canvas.width, canvas.height);
+        c.restore();
+      }
+
+      function drawWall(c, w) {
+        const grad = c.createLinearGradient(w.x, w.y, w.x, w.y + w.h);
+        grad.addColorStop(0, '#e6e4d9');
+        grad.addColorStop(0.5, '#d2d0c4');
+        grad.addColorStop(1, '#bdbaac');
+        c.fillStyle = grad;
+        c.fillRect(w.x, w.y, w.w, w.h);
+        c.fillStyle = 'rgba(255, 255, 255, 0.55)';
+        c.fillRect(w.x, w.y, w.w, 2);
+        c.fillStyle = 'rgba(60, 55, 40, 0.25)';
+        c.fillRect(w.x, w.y + w.h - 2, w.w, 2);
+        c.fillStyle = 'rgba(237, 138, 32, 0.55)';
+        for (let sx = w.x + 6; sx < w.x + w.w - 4; sx += 14) {
+          c.fillRect(sx, w.y + w.h / 2 - 1, 6, 2);
+        }
+        c.strokeStyle = '#9b988d';
+        c.lineWidth = 1;
+        c.strokeRect(w.x + 0.5, w.y + 0.5, w.w - 1, w.h - 1);
+      }
+
+      function drawNoPortalZone(c, z) {
+        c.save();
+        c.fillStyle = grayPatternFor(c);
+        c.fillRect(z.x, z.y, z.w, z.h);
+        // subtle vignette inside the patch so it reads as a painted region
+        const g = c.createLinearGradient(z.x, z.y, z.x, z.y + z.h);
+        g.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
+        g.addColorStop(1, 'rgba(0, 0, 0, 0.18)');
+        c.fillStyle = g;
+        c.fillRect(z.x, z.y, z.w, z.h);
+        // outer edge
+        c.strokeStyle = '#3a3d44';
+        c.lineWidth = 1;
+        c.strokeRect(z.x + 0.5, z.y + 0.5, z.w - 1, z.h - 1);
+        c.restore();
+      }
+
+      function drawTurret(c, k) {
+        const x = k.x - k.dir * k.recoil * 10;
+        const y = k.y;
+        c.save();
+        c.translate(x, y);
+
+        // base plate
+        c.fillStyle = '#ece9dd';
+        c.strokeStyle = '#9b988d';
+        c.lineWidth = 2;
+        c.beginPath();
+        c.arc(0, 0, 26, 0, Math.PI * 2);
+        c.fill();
+        c.stroke();
+
+        c.strokeStyle = '#b8b4a6';
+        c.lineWidth = 3;
+        c.beginPath();
+        c.arc(0, 0, 20, 0, Math.PI * 2);
+        c.stroke();
+
+        c.rotate(k.aim * 0.6);
+        const bw = 54, bh = 20;
+        const bx = k.dir > 0 ? 0 : -bw;
+        const grad = c.createLinearGradient(0, -bh / 2, 0, bh / 2);
+        grad.addColorStop(0, '#fefcf4');
+        grad.addColorStop(0.5, '#d5d2c3');
+        grad.addColorStop(1, '#9e9b8d');
+        c.fillStyle = grad;
+        c.strokeStyle = '#85817a';
+        c.lineWidth = 2;
+        c.beginPath();
+        c.roundRect(bx, -bh / 2, bw, bh, 4);
+        c.fill();
+        c.stroke();
+
+        c.fillStyle = '#1a1a20';
+        const mw = 8;
+        const mx = k.dir > 0 ? bw - mw - 2 : -bw + 2;
+        c.fillRect(mx, -bh / 2 + 3, mw, bh - 6);
+
+        c.fillStyle = '#666';
+        for (const rx of [7, bw - 7]) {
+          const px = k.dir > 0 ? rx : -rx;
+          c.beginPath();
+          c.arc(px, -bh / 2 + 3, 1.5, 0, Math.PI * 2);
+          c.arc(px, bh / 2 - 3, 1.5, 0, Math.PI * 2);
+          c.fill();
+        }
+
+        // glowing red eye
+        const eyePulse = 0.7 + 0.3 * Math.sin(k.eyeT * 3);
+        c.shadowColor = 'rgba(216, 58, 42, 0.95)';
+        c.shadowBlur = 14 * eyePulse;
+        c.fillStyle = `rgba(216, 58, 42, ${eyePulse})`;
+        c.beginPath();
+        c.arc(k.dir * 6, 0, 3.2, 0, Math.PI * 2);
+        c.fill();
+        c.shadowBlur = 0;
+
+        c.restore();
+      }
+
+      function drawCube(c, cube) {
+        const s = cube.size;
+        c.save();
+        c.translate(cube.x, cube.y);
+        c.rotate(cube.rot);
+        c.fillStyle = cube.color;
+        c.strokeStyle = 'rgba(20, 20, 25, 0.75)';
+        c.lineWidth = 2;
+        c.fillRect(-s / 2, -s / 2, s, s);
+        c.strokeRect(-s / 2, -s / 2, s, s);
+        c.beginPath();
+        c.moveTo(-s * 0.35, -s * 0.35); c.lineTo(s * 0.35, s * 0.35);
+        c.moveTo(s * 0.35, -s * 0.35); c.lineTo(-s * 0.35, s * 0.35);
+        c.stroke();
+        c.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        c.beginPath();
+        c.arc(0, 0, s * 0.12, 0, Math.PI * 2);
+        c.fill();
+        c.restore();
+      }
+
+      // Foreground-only pass. Background is composited separately onto the
+      // offscreen via destination-over so the main canvas stays transparent
+      // where no content is drawn (letting the CSS body pattern show through).
+      function renderForeground(c, snapshot) {
+        c.save();
+        c.setTransform(1, 0, 0, 1, 0, 0);
+        for (const w of walls) drawWall(c, w);
+        for (const z of noPortalZones) drawNoPortalZone(c, z);
+        if (snapshot) {
+          const t = c.drawElementImage(snapshot, contentX, contentY);
+          if (t) content.style.transform = t.toString();
+        } else {
+          try {
+            const t = c.drawElementImage(content, contentX, contentY);
+            if (t) content.style.transform = t.toString();
+          } catch (_) { }
+        }
+        for (const k of turrets) drawTurret(c, k);
+        for (const cube of cubes) drawCube(c, cube);
+        c.restore();
+      }
+
+      // ------------------------------------------------------------------
+      // Portal rendering
+      // ------------------------------------------------------------------
+      function drawDistortedPortalView(c, self, other, time, seed) {
+        const stripH = 4;
+        const margin = 14;
+        const top = self.y - self.ry - margin;
+        const bot = self.y + self.ry + margin;
+
+        for (let y = top; y < bot; y += stripH) {
+          const yRel = y - self.y;
+          const xJit =
+            Math.sin(time * 2.5 + yRel * 0.09 + seed) * 3.0 +
+            Math.sin(time * 1.6 + yRel * 0.17 + seed * 2.1) * 1.8;
+
+          const drawW = 2 * self.rx + 2 * margin;
+          const drawX = self.x - self.rx - margin;
+          const drawY = y;
+
+          const srcX = (drawX - self.x + other.x) + xJit;
+          const srcY = (drawY - self.y + other.y);
+
+          const sx = Math.max(0, srcX);
+          const sy = Math.max(0, srcY);
+          const sx2 = Math.min(off.width, srcX + drawW);
+          const sy2 = Math.min(off.height, srcY + stripH);
+          const sw = sx2 - sx;
+          const sh = sy2 - sy;
+          if (sw <= 0 || sh <= 0) continue;
+
+          const dx = drawX + (sx - srcX);
+          const dy = drawY + (sy - srcY);
+          c.drawImage(off, sx, sy, sw, sh, dx, dy, sw, sh);
+        }
+      }
+
+      function drawPortalRing(c, p, palette) {
+        c.save();
+        c.shadowColor = palette.glow;
+        c.shadowBlur = 26;
+        c.strokeStyle = palette.ring;
+        c.lineWidth = 5;
+        c.beginPath();
+        c.ellipse(p.x, p.y, p.rx, p.ry, 0, 0, Math.PI * 2);
+        c.stroke();
+        c.shadowBlur = 10;
+        c.lineWidth = 2;
+        c.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+        c.beginPath();
+        c.ellipse(p.x, p.y, p.rx * 0.92, p.ry * 0.92, 0, 0, Math.PI * 2);
+        c.stroke();
+        c.restore();
+      }
+
+      function drawParticles(c) {
+        for (const p of particles) {
+          if (p.delay > 0) continue;
+          const t = Math.min(1, p.age / p.life);
+          let x, y, size, alpha, color;
+          if (p.kind === 'trail') {
+            const e = 1 - (1 - t) * (1 - t);
+            x = p.sx + (p.ex - p.sx) * e;
+            y = p.sy + (p.ey - p.sy) * e;
+            color = t < 0.5 ? p.color : p.colorEnd;
+            alpha = Math.sin(t * Math.PI);
+            size = p.size * (1 + (1 - Math.abs(t - 0.5) * 2) * 0.6);
+          } else {
+            x = p.sx; y = p.sy;
+            color = p.color;
+            alpha = 1 - t;
+            size = p.size * (1 - t * 0.3);
+          }
+          c.save();
+          c.globalAlpha = alpha;
+          c.fillStyle = color;
+          c.shadowColor = color;
+          c.shadowBlur = 12;
+          c.beginPath();
+          c.arc(x, y, size, 0, Math.PI * 2);
+          c.fill();
+          c.restore();
+        }
+      }
+
+      function drawCursor(c) {
+        if (!usingVirtualCursor || !cursor.initialized) return;
+        const disabled = isNoPortalHere(cursor.x, cursor.y);
+
+        c.save();
+        c.translate(cursor.x, cursor.y);
+        c.shadowColor = 'rgba(255, 255, 255, 0.8)';
+        c.shadowBlur = 4;
+
+        // crosshair
+        c.strokeStyle = disabled ? DISABLED_COLOR : '#1a1a20';
+        c.lineWidth = 1.5;
+        const r = 10;
+        c.beginPath();
+        c.moveTo(-r, 0); c.lineTo(-3, 0);
+        c.moveTo(r, 0); c.lineTo(3, 0);
+        c.moveTo(0, -r); c.lineTo(0, -3);
+        c.moveTo(0, r); c.lineTo(0, 3);
+        c.stroke();
+        c.beginPath();
+        c.arc(0, 0, 2.2, 0, Math.PI * 2);
+        c.stroke();
+
+        const arcR = 20;
+        const arcSpan = Math.PI * 0.38;
+        const blueOn = !!portals.blue;
+        const orangeOn = !!portals.orange;
+
+        c.lineWidth = 3;
+        c.lineCap = 'round';
+
+        if (disabled) {
+          // Both arcs washed out in red to signal the surface rejects portals.
+          c.strokeStyle = 'rgba(197, 48, 48, 0.55)';
+          c.shadowColor = DISABLED_COLOR;
+          c.shadowBlur = 0;
+          c.beginPath();
+          c.arc(0, 0, arcR, Math.PI - arcSpan, Math.PI + arcSpan);
+          c.stroke();
+          c.beginPath();
+          c.arc(0, 0, arcR, -arcSpan, arcSpan);
+          c.stroke();
+
+          // strikethrough circle
+          c.strokeStyle = DISABLED_COLOR;
+          c.lineWidth = 2.5;
+          c.shadowBlur = 0;
+          c.beginPath();
+          c.arc(0, 0, arcR + 2, 0, Math.PI * 2);
+          c.stroke();
+          c.beginPath();
+          c.moveTo(-arcR * 0.72, -arcR * 0.72);
+          c.lineTo(arcR * 0.72, arcR * 0.72);
+          c.stroke();
+        } else {
+          c.strokeStyle = blueOn ? PORTAL_COLORS.blue.ring : 'rgba(30, 159, 224, 0.32)';
+          c.shadowColor = PORTAL_COLORS.blue.ring;
+          c.shadowBlur = blueOn ? 12 : 0;
+          c.beginPath();
+          c.arc(0, 0, arcR, Math.PI - arcSpan, Math.PI + arcSpan);
+          c.stroke();
+
+          c.strokeStyle = orangeOn ? PORTAL_COLORS.orange.ring : 'rgba(237, 138, 32, 0.32)';
+          c.shadowColor = PORTAL_COLORS.orange.ring;
+          c.shadowBlur = orangeOn ? 12 : 0;
+          c.beginPath();
+          c.arc(0, 0, arcR, -arcSpan, arcSpan);
+          c.stroke();
+        }
+        c.restore();
+      }
+
+      // ------------------------------------------------------------------
+      // Paint
+      // ------------------------------------------------------------------
+      canvas.onpaint = () => {
+        ctx.reset();
+        octx.reset();
+
+        let snapshot = null;
+        try { snapshot = canvas.captureElementImage(content); } catch (_) { }
+
+        // Main canvas: foreground only. Wherever nothing is drawn, the CSS
+        // body background pattern shows through the transparent canvas.
+        renderForeground(ctx, snapshot);
+
+        // Offscreen: start with the main canvas, then paint the background
+        // pattern in behind it (destination-over). The result is a full world
+        // composite — background + foreground — suitable for portal sampling.
+        octx.drawImage(canvas, 0, 0);
+        octx.save();
+        octx.globalCompositeOperation = 'destination-over';
+        drawBackgroundPattern(octx);
+        octx.restore();
+
+        for (const color of ['blue', 'orange']) {
+          const self = portals[color];
+          if (!self) continue;
+          const other = portals[color === 'blue' ? 'orange' : 'blue'];
+          const pal = PORTAL_COLORS[color];
+          const seed = color === 'blue' ? 1.3 : 4.7;
+
+          ctx.save();
+          const clipPath = new Path2D();
+          clipPath.ellipse(self.x, self.y, self.rx, self.ry, 0, 0, Math.PI * 2);
+          ctx.clip(clipPath);
+
+          if (other) {
+            drawDistortedPortalView(ctx, self, other, clock, seed);
+            ctx.fillStyle = pal.halo;
+            ctx.fillRect(self.x - self.rx - 2, self.y - self.ry - 2,
+              self.rx * 2 + 4, self.ry * 2 + 4);
+          } else {
+            const g = ctx.createRadialGradient(self.x, self.y, 0,
+              self.x, self.y, Math.max(self.rx, self.ry));
+            g.addColorStop(0, pal.halo);
+            g.addColorStop(1, 'rgba(40, 40, 48, 0.6)');
+            ctx.fillStyle = g;
+            ctx.fillRect(self.x - self.rx - 2, self.y - self.ry - 2,
+              self.rx * 2 + 4, self.ry * 2 + 4);
+          }
+          ctx.restore();
+        }
+
+        if (portals.blue) drawPortalRing(ctx, portals.blue, PORTAL_COLORS.blue);
+        if (portals.orange) drawPortalRing(ctx, portals.orange, PORTAL_COLORS.orange);
+
+        drawParticles(ctx);
+        drawCursor(ctx);
+
+        if (snapshot) snapshot.close();
+      };
+
+      // ------------------------------------------------------------------
+      // Main loop
+      // ------------------------------------------------------------------
+      let startT = performance.now();
+      let lastT = startT;
+      function frame(now) {
+        const dt = Math.min(1 / 30, (now - lastT) / 1000);
+        clock = (now - startT) / 1000;
+        lastT = now;
+        updateTurrets(dt, clock);
+        step(dt);
+        updateParticles(dt);
+        canvas.requestPaint();
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    })();
+  </script>
 </body>
+
 </html>
