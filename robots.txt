@@ -1,3 +1,9 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Disallow: /resume/
+Disallow: /resume
+Disallow: /cv/
+Disallow: /cv
+Disallow: /journey
+
+Sitemap: https://gkurt.com/sitemap-index.xml
