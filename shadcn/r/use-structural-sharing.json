@@ -12,7 +12,7 @@
   "files": [
     {
       "path": "registry/default/hooks/use-structural-sharing.ts",
-      "content": "import { useRef } from 'react';\nimport { replaceEqualDeep } from '../lib/replace-equal-deep';\n\ntype FunctionType = (...args: any[]) => any;\n\n/**\n * Memoizes a value deeply and returns a value that is as equal as possible to the input value.\n * This method is also used inside react-query to memoize query results.\n * This is an advanced version of `useMemoCompare`.\n */\nexport function useStructuralSharing<T, TRet = T extends FunctionType ? ReturnType<T> : T>(value: T) {\n  const resolvedValue = typeof value === 'function' ? value() : value;\n  const memoRef = useRef<TRet>(resolvedValue);\n\n  if (resolvedValue !== memoRef.current) {\n    memoRef.current = replaceEqualDeep(memoRef.current, resolvedValue);\n  }\n\n  return memoRef.current;\n}\n",
+      "content": "import { useRef } from 'react';\nimport { replaceEqualDeep } from '#registry/default/lib/replace-equal-deep.ts';\n\ntype FunctionType = (...args: any[]) => any;\n\n/**\n * Memoizes a value deeply and returns a value that is as equal as possible to the input value.\n * This method is also used inside react-query to memoize query results.\n * This is an advanced version of `useMemoCompare`.\n */\nexport function useStructuralSharing<T, TRet = T extends FunctionType ? ReturnType<T> : T>(value: T) {\n  const resolvedValue = typeof value === 'function' ? value() : value;\n  const memoRef = useRef<TRet>(resolvedValue);\n\n  if (resolvedValue !== memoRef.current) {\n    memoRef.current = replaceEqualDeep(memoRef.current, resolvedValue);\n  }\n\n  return memoRef.current;\n}\n",
       "type": "registry:hook"
     }
   ],
