@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-previous",
+  "title": "usePrevious Hook",
+  "description": "Returns the previous value of a passed value, with a customizable equality function.",
+  "dependencies": [
+    "react"
+  ],
+  "files": [
+    {
+      "path": "registry/default/hooks/use-previous.ts",
+      "content": "import { useRef } from 'react';\n\ntype EqualityFn<T = unknown> = (a: T, b: T) => boolean;\n\n/**\n * Returns the previous value of the passed value.\n * Whether the value has changed is determined by the equalityFn function. By default, strict equality is used.\n */\nexport function usePrevious<T>(\n  value: T,\n  initialValue?: T,\n  equalityFn: NoInfer<EqualityFn<T>> = Object.is\n): T | undefined {\n  const { current } = useRef<{ prev: T | undefined; cur: T }>({ prev: initialValue, cur: value });\n\n  if (!equalityFn(current.cur, value)) {\n    current.prev = current.cur;\n    current.cur = value;\n  }\n\n  return current.prev;\n}\n",
+      "type": "registry:hook"
+    }
+  ],
+  "type": "registry:hook"
+}

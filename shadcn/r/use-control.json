@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-control",
+  "title": "useControl Hook",
+  "description": "Unifies controlled and uncontrolled state into a single API, with optional default/final values and dependency-based resets.",
+  "dependencies": [
+    "react"
+  ],
+  "registryDependencies": [
+    "https://gkurt.com/shadcn/r/use-stable-callback.json",
+    "https://gkurt.com/shadcn/r/use-state-with-deps.json"
+  ],
+  "files": [
+    {
+      "path": "registry/default/hooks/use-control.ts",
+      "content": "import type { DependencyList, SetStateAction } from 'react';\nimport { useStableCallback } from './use-stable-callback.ts';\nimport { useStateWithDeps } from './use-state-with-deps.ts';\n\ntype OnChangeFn<T, TCtx = void> = (value: SetStateAction<T>, ctx?: TCtx) => void | unknown | Promise<unknown>;\n\nexport type ControlProps<T, TCtx = void> = {\n  onChange?: NoInfer<OnChangeFn<T, TCtx>>;\n  /** Resets the uncontrolled value when dependencies change */\n  deps?: DependencyList;\n} & (\n  | {\n      value: T;\n      defaultValue?: T;\n      finalValue?: T;\n    }\n  | {\n      value?: T;\n      defaultValue: T;\n      finalValue?: T;\n    }\n  | {\n      value?: T;\n      defaultValue?: T;\n      finalValue: T;\n    }\n);\n\nconst noop = () => {};\n/**\n * Working with two-way binding in React can be tricky.\n * React has a concept of controlled and uncontrolled components.\n * Ideally, our components should also be able to work in both modes.\n * This hook helps to work with both scenarios in a consistent way.\n */\nexport function useControl<T, TCtx = void>({ value, defaultValue, finalValue, deps, onChange }: ControlProps<T, TCtx>) {\n  const isControlled = value !== undefined;\n  deps ??= [isControlled];\n  const [state, setState] = useStateWithDeps<T>(defaultValue === undefined ? finalValue! : defaultValue, deps);\n\n  const handleChange = useStableCallback((val: SetStateAction<T>, ctx?: TCtx) => {\n    setState(val);\n    onChange?.(val, ctx);\n  });\n\n  if (isControlled) return [value as T, onChange ?? (noop as OnChangeFn<T, TCtx>)] as const;\n  return [state!, handleChange] as const;\n}\n",
+      "type": "registry:hook"
+    }
+  ],
+  "type": "registry:hook"
+}

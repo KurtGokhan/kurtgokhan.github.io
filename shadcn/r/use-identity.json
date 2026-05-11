@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-identity",
+  "title": "useIdentity Hook",
+  "description": "Returns a referentially stable value as long as a derived identity stays the same.",
+  "dependencies": [
+    "react"
+  ],
+  "files": [
+    {
+      "path": "registry/default/hooks/use-identity.ts",
+      "content": "import { useMemo } from 'react';\n\n/**\n * A hook that returns the same value if the identity of the value has not changed\n * This is useful when you want to prevent unnecessary rerenders of a component unless the value has really changed\n *\n * @example\n * // This will always return the same value with a stable reference, because the returned identity is always the same\n * const time = useIdentity(dayjs('2020-01-01'), x => x.unix());\n */\nexport function useIdentity<T, TRes = T>(\n  value: T,\n  identityFn: (val: T) => unknown,\n  selectorFn?: (val: T) => TRes\n): TRes {\n  const identity = identityFn(value);\n\n  // biome-ignore lint/correctness/useExhaustiveDependencies: This will work because we don't care about the value itself, but rather the identity of the value\n  return useMemo(() => (selectorFn ? selectorFn(value) : (value as unknown as TRes)), [identity]);\n}\n",
+      "type": "registry:hook"
+    }
+  ],
+  "type": "registry:hook"
+}

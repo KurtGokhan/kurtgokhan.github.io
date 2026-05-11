@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-expired-state",
+  "title": "useExpiredState Hook",
+  "description": "Returns one state value before an expiration timestamp and another after, scheduling a re-render when it expires.",
+  "dependencies": [
+    "react"
+  ],
+  "files": [
+    {
+      "path": "registry/default/hooks/use-expired-state.ts",
+      "content": "import { useEffect, useState } from 'react';\n\n/**\n * This hook takes an expiration time and returns the expired state when the expiration time is reached.\n * If the expiration time isn't provided, or isn't reached yet, the default state is returned.\n * By default, the hook returns a boolean indicating whether the expiration time has been reached or not,\n * but you can also provide custom states for both cases.\n */\nexport function useExpiredState<T = boolean>(\n  expiresAt?: number | null,\n  defaultState: T = false as T,\n  expiredState: T = true as T\n) {\n  const diff = !Number.isFinite(expiresAt) ? Number.POSITIVE_INFINITY : expiresAt! - Date.now();\n  const isExpired = !!expiresAt && diff <= 0;\n  const [, rerender] = useState({});\n\n  useEffect(() => {\n    if (!Number.isFinite(expiresAt)) return;\n    const diff = expiresAt! - Date.now();\n    if (diff <= 0) return;\n\n    const timeout = setTimeout(() => rerender({}), diff);\n    return () => clearTimeout(timeout);\n  }, [expiresAt]);\n\n  return isExpired ? expiredState : defaultState;\n}\n",
+      "type": "registry:hook"
+    }
+  ],
+  "type": "registry:hook"
+}

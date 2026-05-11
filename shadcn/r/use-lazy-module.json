@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-lazy-module",
+  "title": "useLazyModule Hook",
+  "description": "Lazily loads and caches a module by key, exposing the instance once resolved.",
+  "dependencies": [
+    "react"
+  ],
+  "registryDependencies": [
+    "https://gkurt.com/shadcn/r/use-promise.json"
+  ],
+  "files": [
+    {
+      "path": "registry/default/hooks/use-lazy-module.ts",
+      "content": "import { usePromise } from './use-promise';\n\nconst loadedModules: Map<string, unknown> = new Map();\nconst loadPromises: Map<string, Promise<unknown>> = new Map();\n\n/** Loads a module once and caches it by key, returning the same promise for subsequent calls. */\nexport function getLazyModule<T>(moduleKey: string, loadFn: () => Promise<T>) {\n  function load() {\n    const loadedModule = loadedModules.get(moduleKey) as T;\n    if (loadedModule) return Promise.resolve(loadedModule);\n\n    return loadFn().then(module => {\n      loadedModules.set(moduleKey, module);\n      return module;\n    });\n  }\n\n  const loadPromise = loadPromises.get(moduleKey) as Promise<T> | undefined;\n  if (loadPromise) return loadPromise;\n\n  const res = load();\n  loadPromises.set(moduleKey, res);\n  return res;\n}\n\nexport type LazyModuleOptions = {\n  disabled?: boolean;\n  suspend?: boolean;\n};\n\nexport type LazyModuleHookOptions<T = unknown> = LazyModuleOptions & {\n  preloadedModule?: T;\n};\n\ntype UseLazyModuleOptions<T = unknown> = LazyModuleHookOptions<T> & {\n  moduleKey: string;\n  moduleLoadFn: () => Promise<T>;\n};\n\n/** Lazily loads a module by key and returns its instance once resolved (optionally suspending). */\nexport function useLazyModule<T = unknown>({\n  disabled = false,\n  suspend = false,\n  preloadedModule,\n  moduleKey,\n  moduleLoadFn,\n}: UseLazyModuleOptions<T>) {\n  const promise = disabled || preloadedModule ? undefined : getLazyModule(moduleKey, moduleLoadFn);\n  const instance = preloadedModule ?? (loadedModules.get(moduleKey) as T | undefined);\n  const res = usePromise(promise, instance, suspend);\n  return res;\n}\n",
+      "type": "registry:hook"
+    }
+  ],
+  "type": "registry:hook"
+}

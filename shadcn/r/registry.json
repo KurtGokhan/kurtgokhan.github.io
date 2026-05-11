@@ -201,6 +201,219 @@
       ]
     },
     {
+      "name": "replace-equal-deep",
+      "type": "registry:lib",
+      "title": "replaceEqualDeep Utility",
+      "description": "Deep structural sharing utility that preserves referential equality for unchanged subtrees of plain objects and arrays.",
+      "files": [
+        {
+          "path": "registry/default/lib/replace-equal-deep.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "use-previous",
+      "type": "registry:hook",
+      "title": "usePrevious Hook",
+      "description": "Returns the previous value of a passed value, with a customizable equality function.",
+      "dependencies": ["react"],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-previous.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "use-identity",
+      "type": "registry:hook",
+      "title": "useIdentity Hook",
+      "description": "Returns a referentially stable value as long as a derived identity stays the same.",
+      "dependencies": ["react"],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-identity.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "use-expired-state",
+      "type": "registry:hook",
+      "title": "useExpiredState Hook",
+      "description": "Returns one state value before an expiration timestamp and another after, scheduling a re-render when it expires.",
+      "dependencies": ["react"],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-expired-state.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "use-promise",
+      "type": "registry:hook",
+      "title": "usePromise Hook",
+      "description": "Resolves a promise into state with an optional default value and optional Suspense support.",
+      "dependencies": ["react"],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-promise.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "use-lazy-module",
+      "type": "registry:hook",
+      "title": "useLazyModule Hook",
+      "description": "Lazily loads and caches a module by key, exposing the instance once resolved.",
+      "dependencies": ["react"],
+      "registryDependencies": ["https://gkurt.com/shadcn/r/use-promise.json"],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-lazy-module.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "use-structural-sharing",
+      "type": "registry:hook",
+      "title": "useStructuralSharing Hook",
+      "description": "Memoizes a value with deep structural sharing so unchanged subtrees keep their references.",
+      "dependencies": ["react"],
+      "registryDependencies": ["https://gkurt.com/shadcn/r/replace-equal-deep.json"],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-structural-sharing.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "use-structural-state",
+      "type": "registry:hook",
+      "title": "useStructuralState Hook",
+      "description": "A useState variant that applies deep structural sharing to avoid re-renders when the new state is deeply equal.",
+      "dependencies": ["react"],
+      "registryDependencies": [
+        "https://gkurt.com/shadcn/r/replace-equal-deep.json",
+        "https://gkurt.com/shadcn/r/use-stable-callback.json"
+      ],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-structural-state.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "use-control",
+      "type": "registry:hook",
+      "title": "useControl Hook",
+      "description": "Unifies controlled and uncontrolled state into a single API, with optional default/final values and dependency-based resets.",
+      "dependencies": ["react"],
+      "registryDependencies": [
+        "https://gkurt.com/shadcn/r/use-stable-callback.json",
+        "https://gkurt.com/shadcn/r/use-state-with-deps.json"
+      ],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-control.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "use-array-control",
+      "type": "registry:hook",
+      "title": "useArrayControl Hook",
+      "description": "Controlled/uncontrolled state hook for arrays with append, insert, upsert, modify, remove, toggle, reorder, and stable React keys.",
+      "dependencies": ["react"],
+      "registryDependencies": [
+        "https://gkurt.com/shadcn/r/use-control.json",
+        "https://gkurt.com/shadcn/r/use-stable-callback.json"
+      ],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-array-control.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "use-record-control",
+      "type": "registry:hook",
+      "title": "useRecordControl Hook",
+      "description": "Controlled/uncontrolled state hook for record/dictionary values with set, merge, rename, remove, and key-order helpers.",
+      "dependencies": ["react"],
+      "registryDependencies": [
+        "https://gkurt.com/shadcn/r/use-control.json",
+        "https://gkurt.com/shadcn/r/use-stable-callback.json"
+      ],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-record-control.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "use-immer-control",
+      "type": "registry:hook",
+      "title": "useImmerControl Hook",
+      "description": "A useControl variant that accepts Immer recipe updaters for ergonomic deep updates.",
+      "dependencies": ["react", "immer"],
+      "registryDependencies": [
+        "https://gkurt.com/shadcn/r/use-control.json",
+        "https://gkurt.com/shadcn/r/use-stable-callback.json"
+      ],
+      "files": [
+        {
+          "path": "registry/default/hooks/use-immer-control.ts",
+          "type": "registry:hook"
+        }
+      ]
+    },
+    {
+      "name": "all",
+      "type": "registry:item",
+      "title": "All",
+      "description": "Shortcut that installs every item from this registry.",
+      "registryDependencies": [
+        "https://gkurt.com/shadcn/r/tv-pick.json",
+        "https://gkurt.com/shadcn/r/poly.json",
+        "https://gkurt.com/shadcn/r/poly-astro.json",
+        "https://gkurt.com/shadcn/r/use-stable-value.json",
+        "https://gkurt.com/shadcn/r/use-stable-callback.json",
+        "https://gkurt.com/shadcn/r/use-combined-refs.json",
+        "https://gkurt.com/shadcn/r/use-state-with-deps.json",
+        "https://gkurt.com/shadcn/r/use-deps-changed.json",
+        "https://gkurt.com/shadcn/r/use-deps-version.json",
+        "https://gkurt.com/shadcn/r/use-constant.json",
+        "https://gkurt.com/shadcn/r/is-function.json",
+        "https://gkurt.com/shadcn/r/apply-update.json",
+        "https://gkurt.com/shadcn/r/deferred.json",
+        "https://gkurt.com/shadcn/r/start-view-transition.json",
+        "https://gkurt.com/shadcn/r/spring.json",
+        "https://gkurt.com/shadcn/r/replace-equal-deep.json",
+        "https://gkurt.com/shadcn/r/use-previous.json",
+        "https://gkurt.com/shadcn/r/use-identity.json",
+        "https://gkurt.com/shadcn/r/use-expired-state.json",
+        "https://gkurt.com/shadcn/r/use-promise.json",
+        "https://gkurt.com/shadcn/r/use-lazy-module.json",
+        "https://gkurt.com/shadcn/r/use-structural-sharing.json",
+        "https://gkurt.com/shadcn/r/use-structural-state.json",
+        "https://gkurt.com/shadcn/r/use-control.json",
+        "https://gkurt.com/shadcn/r/use-array-control.json",
+        "https://gkurt.com/shadcn/r/use-record-control.json",
+        "https://gkurt.com/shadcn/r/use-immer-control.json",
+        "https://gkurt.com/shadcn/r/remove-default-colors.json"
+      ]
+    },
+    {
       "name": "remove-default-colors",
       "type": "registry:theme",
       "title": "Remove Default Tailwind Colors",

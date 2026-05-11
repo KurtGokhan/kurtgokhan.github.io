@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-structural-state",
+  "title": "useStructuralState Hook",
+  "description": "A useState variant that applies deep structural sharing to avoid re-renders when the new state is deeply equal.",
+  "dependencies": [
+    "react"
+  ],
+  "registryDependencies": [
+    "https://gkurt.com/shadcn/r/replace-equal-deep.json",
+    "https://gkurt.com/shadcn/r/use-stable-callback.json"
+  ],
+  "files": [
+    {
+      "path": "registry/default/hooks/use-structural-state.ts",
+      "content": "import { type SetStateAction, useState } from 'react';\nimport { replaceEqualDeep } from '../lib/replace-equal-deep';\nimport { useStableCallback } from './use-stable-callback';\n\n/**\n * A version of `useState` that uses deep equality to compare the previous and new state, and only updates the state if the new state is different.\n * This is useful when the state is a complex object and we want to avoid unnecessary re-renders.\n */\nexport function useStructuralState<S>(initialState: S | (() => S)) {\n  const [state, setStateRaw] = useState(initialState);\n\n  const setState = useStableCallback((newState: SetStateAction<S>) => {\n    setStateRaw(prevState => {\n      const newStateValue = typeof newState === 'function' ? (newState as (prevState: S) => S)(prevState) : newState;\n      return replaceEqualDeep(prevState, newStateValue);\n    });\n  });\n\n  return [state, setState] as const;\n}\n",
+      "type": "registry:hook"
+    }
+  ],
+  "type": "registry:hook"
+}
