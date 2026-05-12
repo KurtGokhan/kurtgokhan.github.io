@@ -418,7 +418,7 @@
       "name": "scroll-utils",
       "type": "registry:style",
       "title": "Scroll Utilities",
-      "description": "Tailwind v4 utilities for auto-hiding thin scrollbars and scroll-driven fade masks. Exposes `scrollable`, `scrollable-always`, `scrollable-no-transition`, `scroll-fade`, `scroll-fade-inline`, and `scroll-fade-both`.",
+      "description": "Tailwind v4 utilities for auto-hiding thin scrollbars and scroll-driven fade masks. Exposes `scrollable`, `scrollable-always`, `scrollable-transition`, `scroll-fade`, `scroll-fade-inline`, and `scroll-fade-both`.",
       "files": [
         {
           "path": "registry/default/scroll-utils.css",
