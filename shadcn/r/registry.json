@@ -410,7 +410,21 @@
         "https://gkurt.com/shadcn/r/use-array-control.json",
         "https://gkurt.com/shadcn/r/use-record-control.json",
         "https://gkurt.com/shadcn/r/use-immer-control.json",
-        "https://gkurt.com/shadcn/r/remove-default-colors.json"
+        "https://gkurt.com/shadcn/r/remove-default-colors.json",
+        "https://gkurt.com/shadcn/r/scroll-utils.json"
+      ]
+    },
+    {
+      "name": "scroll-utils",
+      "type": "registry:style",
+      "title": "Scroll Utilities",
+      "description": "Tailwind v4 utilities for auto-hiding thin scrollbars and scroll-driven fade masks. Exposes `scrollable`, `scrollable-always`, `scrollable-no-transition`, `scroll-fade`, `scroll-fade-inline`, and `scroll-fade-both`.",
+      "files": [
+        {
+          "path": "registry/default/scroll-utils.css",
+          "type": "registry:file",
+          "target": "@lib/scroll-utils.css"
+        }
       ]
     },
     {
